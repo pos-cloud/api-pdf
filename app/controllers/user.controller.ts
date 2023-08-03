@@ -38,6 +38,7 @@ export default class UserController {
 
       const image = fs.readFileSync(imagePai);
       const imagec = fs.readFileSync(imageCode)
+      
       const imageBase = image.toString('base64');
       const imageBase2 = imagec.toString('base64');
       doc.text("Hello world!", 10, 10);
@@ -46,10 +47,11 @@ export default class UserController {
       doc.addImage(imageBase2,"JPEG",10, 10, 50, 65)
       doc.save("a4.pdf");
     
-      const pdfSend = doc.output();
-      res.setHeader('Content-Disposition', 'attachment; filename="prueba.pdf"');
+      const pdfData = doc.output('arraybuffer');
+      
+      res.setHeader('Content-Disposition', 'attachment; filename="a4.pdf"');
       res.setHeader('Content-Type', 'application/pdf');
-      res.send(pdfSend);
+      res.send(pdfData);
   
     } catch (error) {
        console.log(error)
