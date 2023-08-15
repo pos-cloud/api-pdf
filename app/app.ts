@@ -1,6 +1,7 @@
 import { json, urlencoded } from 'express';
 const morgan = require('morgan')
 import Routes from './routes';
+const cors = require('cors')
 
 export default class App {
   constructor(app: any) {
@@ -16,6 +17,7 @@ export default class App {
     // );
      app.use(morgan('dev'));
      app.use(urlencoded({ extended: true }));
+     app.use(cors());
     //app.use(json());
     //app.use(helmet());
     //app.use(rateLimiter()); //  apply to all requests

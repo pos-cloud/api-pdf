@@ -45,18 +45,17 @@ export default class UserController {
       doc.line(15, 15, 200, 15);
       doc.addImage(imageBase,"JPEG",10, 70, 100, 75)
       doc.addImage(imageBase2,"JPEG",10, 10, 50, 65)
-      doc.save("a4.pdf");
+      // doc.save("a4.pdf");
     
-      const pdfData = doc.output('arraybuffer');
-      
-      res.setHeader('Content-Disposition', 'attachment; filename="a4.pdf"');
+     // const pdfData = doc.output('arraybuffer');
+      doc.autoPrint({variant:'non-conform'})                                                                              
+
       res.setHeader('Content-Type', 'application/pdf');
-      res.send(pdfData);
-  
+      res.setHeader('Content-Disposition', 'inline; filename="a4.pdf"');
+      doc.save('autopint.pdf')
+               
     } catch (error) {
        console.log(error)
     }
   }
-
 }
-
