@@ -3,7 +3,7 @@
 		"sourceMap": true,
 		"target": "es2018",
 		"outDir": "./dist",
-		"baseUrl": "./src",
+		"baseUrl": "./app",
 		"alwaysStrict": true,
 		"noImplicitAny": true,
 		"experimentalDecorators": true,
@@ -11,7 +11,7 @@
 		"moduleResolution": "node"
 	},
 	"include": [
-		"src/**/*.ts"
+		"app/**/*.ts"
 	],
 	"exclude": [
 		"node_modules"
