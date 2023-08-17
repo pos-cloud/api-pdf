@@ -28,10 +28,8 @@ export default class UserController {
   }
   async getPDF(req: any , res: any, next: NextFunction){
     try {
-       
-      const doc = new jsPDF();
-
-      const currentDir = __dirname;
+    const pdf = new jsPDF();
+       const currentDir = __dirname;
 
       const imagePai = path.join(currentDir, '../assets/paisaje.jpg');
       const imageCode = path.join(currentDir, '../assets/code.png')
@@ -41,19 +39,19 @@ export default class UserController {
       
       const imageBase = image.toString('base64');
       const imageBase2 = imagec.toString('base64');
-      doc.text("Hello world!", 10, 10);
-      doc.line(15, 15, 200, 15);
-      doc.addImage(imageBase,"JPEG",10, 70, 100, 75)
-      doc.addImage(imageBase2,"JPEG",10, 10, 50, 65)
-      // doc.save("a4.pdf");
-    
-     // const pdfData = doc.output('arraybuffer');
-      doc.autoPrint({variant:'non-conform'})                                                                              
+      
+        pdf.text('Hola, este es un PDF generado desde Node.js con jsPDF.', 10, 10);
+        pdf.line(15, 15, 200, 15);
+        pdf.addImage(imageBase,"JPEG",10, 70, 100, 75)
+        pdf.addImage(imageBase2,"JPEG",10, 10, 50, 65)
+        pdf.autoPrint()
+         const pdfBase64 = pdf.output('datauristring');
 
       res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', 'inline; filename="a4.pdf"');
-      doc.save('autopint.pdf')
-               
+      res.setHeader('Content-Disposition', 'inline; filename=generated.pdf');
+
+      res.send(pdfBase64);
+
     } catch (error) {
        console.log(error)
     }

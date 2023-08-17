@@ -3,6 +3,11 @@ const morgan = require('morgan')
 import Routes from './routes';
 const cors = require('cors')
 
+const corsOptions = {
+  origin: 'http://localhost:4200', // Cambia a tu URL de Angular
+  optionsSuccessStatus: 200,
+};
+
 export default class App {
   constructor(app: any) {
     this.config(app);
@@ -17,7 +22,7 @@ export default class App {
     // );
      app.use(morgan('dev'));
      app.use(urlencoded({ extended: true }));
-     app.use(cors());
+     app.use(cors(corsOptions));
     //app.use(json());
     //app.use(helmet());
     //app.use(rateLimiter()); //  apply to all requests
