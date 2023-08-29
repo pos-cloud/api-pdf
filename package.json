@@ -4,7 +4,8 @@
   "description": "",
   "main": "./server.ts",
   "scripts": {
-    "dev": "nodemon ./server.ts"
+    "dev": "nodemon ./server.ts",
+    "evennode:dev": "cross-env NODE_ENV=development MONGO_URL=mongodb+srv://pos:pos@cluster0.fscmrqu.mongodb.net/ BASE_URL_V8=http://apiv2.eu-4.evennode.com PORT=3000 node ./server.ts"
   },
   "compilerOptions": {
     "module": "commonjs",
@@ -27,10 +28,12 @@
   },
   "homepage": "https://github.com/pos-cloud/fe-ar#readme",
   "dependencies": {
+    "@types/moment": "^2.13.0",
     "bwip-js": "^3.4.5",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
     "cors": "^2.8.5",
+    "cross-env": "^7.0.3",
     "crypto": "^1.0.1",
     "dotenv": "^16.3.1",
     "env": "^0.0.2",

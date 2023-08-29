@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import MongoDBManager from '../dbs/mongodb';
+import MongoDBManager from '../db/connection';
 import { ObjectId } from 'mongodb';
 import { UserI } from '../interfaces';
 const path = require('path')

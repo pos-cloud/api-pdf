@@ -1,5 +1,5 @@
 import {Schema} from 'mongoose'
-import MongooseModel from '../dbs/mongoose-model'
+import MongooseModel from '../db/connection'
 import Model from './model'
 
 class TransactionSchema extends Model {
@@ -100,9 +100,6 @@ class TransactionSchema extends Model {
     return '/transactions'
   }
 
-  public getInstance(database: string) {
-    return new (new MongooseModel(this, database).getModel(this.name))()
-  }
 }
 
 export default new TransactionSchema()
