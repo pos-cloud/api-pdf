@@ -19,7 +19,6 @@ export default class App {
      app.use(morgan('dev'));
      app.use(urlencoded({ extended: true }));
      app.use(cors());
-    //app.use(json());
     //app.use(helmet());
     //app.use(rateLimiter()); //  apply to all requests
     ///app.use(unCoughtErrorHandler);

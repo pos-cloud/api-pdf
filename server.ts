@@ -9,7 +9,7 @@ const app = express();
 new App(app);
 
 app.listen(process.env.PORT, () => {
-    console.info(`Server running on : ${process.env.PORT}`);
+    console.info(`Server running on: ${process.env.PORT}`);
   })
   .on('error', (err: any) => {
     if (err.code === 'EADDRINUSE') {
