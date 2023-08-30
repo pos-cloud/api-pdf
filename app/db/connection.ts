@@ -9,7 +9,7 @@ class MongoDBManager {
 
   async initConnection(databaseName: string) {
     try {
-      const mongoUri = `${this.uri}/${databaseName}`; 
+      const mongoUri = `${process.env.MONGO_url}/${databaseName}`; 
       if (!this.client) {
         this.client = await MongoClient.connect(mongoUri);
         this.database = this.client.db(databaseName);
