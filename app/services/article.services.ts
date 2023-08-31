@@ -6,8 +6,9 @@ const mongoDBManager = new MongoDBManager();
 export async function getArticleById(id: ObjectId, database: any){
     try {
         await mongoDBManager.initConnection(database || '');
-        const usersCollection = mongoDBManager.getCollection('articles');
-        return await usersCollection.findOne({_id: new ObjectId(id)})
+        const articleCollection = mongoDBManager.getCollection('articles');
+        return await articleCollection.findOne({_id: new ObjectId(id)})
+    
     } catch (error) {
         throw Error(error); 
     }
