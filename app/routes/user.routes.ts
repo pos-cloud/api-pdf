@@ -1,7 +1,7 @@
 import { Router, response } from 'express';
 import UserController from '../controllers/user.controller';
 import authMiddleware from '../middleware/auth.middleware';
-import { getArticleController } from '../controllers/LabelArticleController';
+import { getArticleController } from '../controllers/labelArticle.controller';
 
 class UserRoutes {
   router = Router();

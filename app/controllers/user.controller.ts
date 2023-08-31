@@ -26,6 +26,7 @@ export default class UserController {
       return response.status(500).json({ message: error.toString() });
     }
   }
+  
   async getPDF(req: any , res: any, next: NextFunction){
     try {
     const pdf = new jsPDF();
