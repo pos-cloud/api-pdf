@@ -48,7 +48,6 @@ export async function getArticleLabelController(request: request, res: Response)
 
         const pdfDataUri = doc.output('datauristring');
         doc.autoPrint()
-        doc.save()
         res.status(200).json({data: pdfDataUri})
 
         async function buildLayout(doc: any , position: PositionPrint, printer: Printer, article: any, token: any) {
