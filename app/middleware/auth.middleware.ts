@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
+import RequestWithUser from 'interfaces/requestWithUser.interface';
 import * as jwt from 'jwt-simple';
 
 interface DataJWT {
@@ -10,9 +11,9 @@ interface DataJWT {
 }
 
 async function authMiddleware(
-  request: any,
-  response: any,
-  next: any,
+  request: RequestWithUser,
+  response: Response,
+  next: NextFunction,
 ) {
   if (request?.headers?.authorization) {
     const token = request.headers.authorization.replace(/['"]+/g, '');
@@ -25,8 +26,10 @@ async function authMiddleware(
       const database: string = dataJWT?.database;
       const userId: string = dataJWT?.user;
 
-      request['database'] = database;
-      request['userId'] = userId;
+      console.log(userId);
+
+      request.database = database;
+      request.userId = userId;
 
       next();
     } catch (error) {
