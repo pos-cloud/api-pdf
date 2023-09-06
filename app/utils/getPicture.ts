@@ -18,3 +18,20 @@ export function getCompanyPictureData(picture: string, token: string) {
     }
   
 }
+
+// function getImageBase64(image: string) {
+
+
+// 	let fs = require('fs');
+// 	let picture = image;
+
+// 	if (picture && picture !== undefined) {
+// 		try {
+// 			let bitmap = fs.readFileSync(path.resolve('/home/clients/' + req.session.database + '/images/company/' + picture));
+// 			return res.status(200).send({ imageBase64: new Buffer(bitmap).toString('base64') });
+// 		} catch (err) {
+// 			fileController.writeLog(req, res, next, 404, constants.NO_IMAGEN_FOUND);
+// 			return res.status(404).send(constants.NO_IMAGEN_FOUND);
+// 		}
+// 	}
+// }

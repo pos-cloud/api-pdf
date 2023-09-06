@@ -26,8 +26,6 @@ async function authMiddleware(
       const database: string = dataJWT?.database;
       const userId: string = dataJWT?.user;
 
-      console.log(userId);
-
       request.database = database;
       request.userId = userId;
 
