@@ -1,14 +1,16 @@
+import Printer from "models/printer";
 import MongoDBManager from "../db/connection";
-import { ObjectId } from "mongodb";
 
 const mongoDBManager = new MongoDBManager();
 
-export async function getPrinters(database: any){
+export async function getPrinters(database: string, query: string): Promise<Printer[]> {
     try {
-        await mongoDBManager.initConnection(database || '');
+        await mongoDBManager.initConnection(database);
+
         const printersCollection = mongoDBManager.getCollection('printers');
-       // return await printersCollection.find({}).toArray();
-        return await printersCollection.findOne({_id: new ObjectId('64f6224d2d0abf003a651af4')})
+        const printers: Printer[] = await printersCollection.find({ printIn : query }).toArray()
+
+        return printers;
     } catch (error) {
         throw Error(error); 
     }
