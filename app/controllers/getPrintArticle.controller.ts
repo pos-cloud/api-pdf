@@ -32,7 +32,7 @@ export async function getPrintArticle(
     const doc = new jsPDF(orientation, units, [pageWidth, pageHigh]);
 
 
-    doc.text("Hola, este es un PDF generado desde Node.js con jsdoc.", 10, 10);
+    doc.text("Hola, este es un PDF generado desde Node.js con jsdoc.", 0, 10);
 
     doc.autoPrint();
     const pdfBase64 = doc.output("datauristring");
