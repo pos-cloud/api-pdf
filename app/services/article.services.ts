@@ -11,7 +11,6 @@ export async function getArticleById(id: string, database: string) : Promise<Art
         const article: ArticleI = await articlesCollection.findOne({
             _id: new ObjectId(id),
         });
-        console.log(article)
         return article;
     } catch (error) {
         throw Error(error); 

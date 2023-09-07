@@ -30,7 +30,23 @@ export async function getPrintTransaction(
         const orientation = printer.orientation;
         const doc = new jsPDF(orientation, units, [pageWidth, pageHigh]);
         
-        doc.text('Prueba',10, 10)
+
+        doc.line(6, 6, 205, 6);// Linea Horizontal
+        doc.line(6, 6, 6, 57);// Linea Vertical
+        doc.line(205, 6 , 205, 57);// Linea Vertical
+        doc.line(6, 57, 205, 57);// Linea Horizontal
+        doc.line(6, 15, 205, 15);// Linea Horizontal
+
+        doc.line(107, 29, 107, 57);// Linea Vertical Medio
+        doc.line(99, 29, 115, 29);// Linea Horizontal
+        doc.line(15, 30, 30, 57);// Linea Vertical
+
+        doc.line(6, 60, 205, 60);// Linea Horizontal
+        doc.line(6, 60, 6, 80);// Linea Vertical
+        doc.line(205, 60, 205, 80);// Linea Vertical
+        doc.line(6, 80, 205, 80);// Linea Horizontal
+
+        doc.save('Factura.pdf')
         doc.autoPrint();
         const pdfBase64 = doc.output("datauristring")
         return res.status(200).send({ pdfBase64 });

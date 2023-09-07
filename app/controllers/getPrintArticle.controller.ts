@@ -3,6 +3,7 @@ import { getArticleById } from "../services/article.services";
 import { getPrinters } from "../services/printers.services";
 import RequestWithUser from "../interfaces/requestWithUser.interface";
 import { getBarcode } from "../utils/getBarcode";
+import { getCompanyPictureData } from "../services/getPicture.service";
 const { jsPDF } = require("jspdf");
 
 export async function getPrintArticle(
@@ -11,7 +12,7 @@ export async function getPrintArticle(
 ) {
   const database: string = req.database;
   const articleId: string = req.query.articleId as string;
-
+  const token = req.headers.authorization
   try {
     const article = await getArticleById(articleId, database);
 
@@ -46,14 +47,15 @@ export async function getPrintArticle(
           doc.setLineWidth(field.fontSize);
           doc.line(field.positionStartX, field.positionStartY, field.positionEndX, field.positionEndY);
           break;
-        // case 'image':
-        //     try {
-        //         const img = await getCompanyPicture(eval(field.value));
-        //         doc.addImage(img, 'jpeg', field.positionStartX, field.positionStartY, field.positionEndX, field.positionEndY);
-        //     } catch (error) {
-        //         console.log(error)
-        //     }
-        //     break;
+        case 'image':
+            try {
+              console.log('ACA ERROR:', eval(field.value))
+                const img = await getCompanyPictureData(eval(field.value), token);
+                doc.addImage(img, 'jpeg', field.positionStartX, field.positionStartY, field.positionEndX, field.positionEndY);
+            } catch (error) {
+                console.log(error)
+            }
+            break;
         case 'barcode':
           try {
             const response = await getBarcode('code128', eval(field.value));
