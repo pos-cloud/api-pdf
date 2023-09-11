@@ -1,3 +1,4 @@
+import Company from "./company";
 import Model from "./model";
 export default interface Transaction extends Model {
   origin: number
@@ -48,7 +49,7 @@ export default interface Transaction extends Model {
   // branchDestination?: Branch
   // depositOrigin?: Deposit
   // depositDestination?: Deposit
-  // company?: Company
+   company?: Company
   // transport?: Transport
   // shipmentMethod?: ShipmentMethod
   // priceList?: PriceList

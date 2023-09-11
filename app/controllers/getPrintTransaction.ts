@@ -23,6 +23,7 @@ export async function getPrintTransaction(
         const config = await getConfig(database)
 
         if(!config){
+            console.log(config)
             return res.status(404).json({ message: "Config not found"})
         }
 
@@ -63,14 +64,17 @@ export async function getPrintTransaction(
 
         doc.text(transaction.letter, 104.5, 23)
         doc.setFontSize(20);
-        doc.text(config[0].companyName, 15, 26)
+        doc.text(config.companyName, 15, 26)
         doc.text('FACTURA', 130, 25)
         doc.setFont("helvetica", "normal");
         
 
         //Labels Primer Cuadro
-        doc.setFontSize(9);
+         doc.setFontSize(8)
         doc.setFont("helvetica", "bold");
+        doc.text('COD. ' + padString(config.companyVatCondition.code, 2), 101.4, 27)
+
+        doc.setFontSize(9);
         doc.text('Razón Social:', 9, 36)
         doc.text('Domicilio Comercial:', 9, 45)
         doc.text('Condicion frente al IVA:', 9, 55)
@@ -93,18 +97,21 @@ export async function getPrintTransaction(
 
         // Datos primer cuadro
         doc.setFont("helvetica", "normal");
-        doc.text(config[0].companyName, 31, 36)
-        doc.text(config[0].companyAddress, 42, 45)
-        doc.text(config[0].companyIdentificationValue, 130, 46)
-        doc.text(config[0].companyGrossIncome, 146, 50)
-        doc.text(formatDate(config[0].companyStartOfActivity), 169, 55)
+        doc.text(config.companyName, 31, 36)
+        doc.text(config.companyAddress, 42, 45)
+        doc.text(config.companyVatCondition.description, 46, 55)
+        doc.text(config.companyIdentificationValue, 130, 46)
+        doc.text(config.companyGrossIncome, 146, 50)
+        doc.text(formatDate(config.companyStartOfActivity), 169, 55)
         doc.text(formatDate(transaction.startDate), 149, 37)
         doc.text(padString(transaction.number, 10), 184, 32)
         doc.text(padString(transaction.origin, 4), 147, 32)
-        doc.text(config[0].companyVatCondition.slice(0, 31), 30, 55);
 
         //Datos segundo cuadro
-        // doc.text(transaction.number, 165, 35)
+        doc.text(transaction.company.CUIT, 18, 64)
+        doc.text(transaction.company.vatCondition.description, 46, 70)
+        doc.text(transaction.company.name, 153, 64)
+        doc.text(transaction.company.address, 132, 70)
         
         doc.save('Factura.pdf')
         doc.autoPrint();

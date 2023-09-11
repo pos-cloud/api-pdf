@@ -1,4 +1,5 @@
 import Model from "./model"
+import VATCondition from "./vat-condition"
 
 export default interface Config extends Model {
     numberCompany: string
@@ -20,7 +21,7 @@ export default interface Config extends Model {
     companyCUIT: string
     // companyIdentificationType: IdentificationType
     companyIdentificationValue: string
-     companyVatCondition: any
+    companyVatCondition: VATCondition
     companyStartOfActivity: Date
     companyGrossIncome: string
     companyAddress: string
@@ -64,7 +65,7 @@ export default interface Config extends Model {
         default: boolean
       }
       vatCondition: {
-        // default: VATCondition
+        default: VATCondition
       }
       accountClient: {
         // default: Account
