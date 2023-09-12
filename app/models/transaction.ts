@@ -49,7 +49,7 @@ export default interface Transaction extends Model {
   // branchDestination?: Branch
   // depositOrigin?: Deposit
   // depositDestination?: Deposit
-   company?: Company
+   company?: any
   // transport?: Transport
   // shipmentMethod?: ShipmentMethod
   // priceList?: PriceList

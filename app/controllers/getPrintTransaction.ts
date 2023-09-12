@@ -14,17 +14,15 @@ export async function getPrintTransaction(
     const transactionId: string = req.query.transactionId as string;
 
     try {
-        const transaction = await getTransactionById(transactionId, database);
-
-        if (!transaction) {
-            return res.status(404).json({ message: "Transaction not found" });
-        }
-
         const config = await getConfig(database)
-
         if(!config){
             console.log(config)
             return res.status(404).json({ message: "Config not found"})
+        }
+
+        const transaction = await getTransactionById(transactionId, database);
+        if (!transaction) {
+            return res.status(404).json({ message: "Transaction not found" });
         }
 
         const printers = await getPrinters(database, "Mostrador");
@@ -64,7 +62,7 @@ export async function getPrintTransaction(
 
         doc.text(transaction.letter, 104.5, 23)
         doc.setFontSize(20);
-        doc.text(config.companyName, 15, 26)
+        doc.text(config[0].companyName, 15, 26)
         doc.text('FACTURA', 130, 25)
         doc.setFont("helvetica", "normal");
         
@@ -72,7 +70,7 @@ export async function getPrintTransaction(
         //Labels Primer Cuadro
          doc.setFontSize(8)
         doc.setFont("helvetica", "bold");
-        doc.text('COD. ' + padString(config.companyVatCondition.code, 2), 101.4, 27)
+        doc.text('COD. ' + padString(config[0].companyVatCondition.code, 2), 101.4, 27)
 
         doc.setFontSize(9);
         doc.text('Razón Social:', 9, 36)
@@ -97,12 +95,12 @@ export async function getPrintTransaction(
 
         // Datos primer cuadro
         doc.setFont("helvetica", "normal");
-        doc.text(config.companyName, 31, 36)
-        doc.text(config.companyAddress, 42, 45)
-        doc.text(config.companyVatCondition.description, 46, 55)
-        doc.text(config.companyIdentificationValue, 130, 46)
-        doc.text(config.companyGrossIncome, 146, 50)
-        doc.text(formatDate(config.companyStartOfActivity), 169, 55)
+        doc.text(config[0].companyName, 31, 36)
+        doc.text(config[0].companyAddress, 42, 45)
+        doc.text(config[0].companyVatCondition.description, 46, 55)
+        doc.text(config[0].companyIdentificationValue, 130, 46)
+        doc.text(config[0].companyGrossIncome, 146, 50)
+        doc.text(formatDate(config[0].companyStartOfActivity), 169, 55)
         doc.text(formatDate(transaction.startDate), 149, 37)
         doc.text(padString(transaction.number, 10), 184, 32)
         doc.text(padString(transaction.origin, 4), 147, 32)
