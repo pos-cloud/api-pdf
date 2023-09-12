@@ -4,12 +4,12 @@ import VATCondition from "../models/vat-condition";
 
 const mongoDBManager = new MongoDBManager();
 
-export async function getVatCondition(database: string, id: string): Promise<VATCondition[]> {
+export async function getVatCondition(database: string, id: string): Promise<VATCondition> {
     try {
         await mongoDBManager.initConnection(database);
 
         const vatConditionCollection = mongoDBManager.getCollection('vat-conditions');
-        const vatCondition: VATCondition[] = await vatConditionCollection.findOne({
+        const vatCondition: VATCondition = await vatConditionCollection.findOne({
             _id: new ObjectId(id),
           });
 

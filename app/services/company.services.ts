@@ -12,7 +12,6 @@ export async function getCompany(database: string, id: string): Promise<Company>
         const company: Company = await companyCollection.findOne({
             _id: new ObjectId(id),
           });
-    
         return company;
     } catch (error) {
         throw Error(error); 

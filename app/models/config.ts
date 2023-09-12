@@ -21,7 +21,7 @@ export default interface Config extends Model {
     companyCUIT: string
     // companyIdentificationType: IdentificationType
     companyIdentificationValue: string
-    companyVatCondition: VATCondition
+    companyVatCondition: any
     companyStartOfActivity: Date
     companyGrossIncome: string
     companyAddress: string
