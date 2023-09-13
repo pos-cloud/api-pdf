@@ -1,3 +1,4 @@
+import { ObjectId } from "mongodb";
 import Company from "./company";
 import Model from "./model";
 export default interface Transaction extends Model {
@@ -39,7 +40,7 @@ export default interface Transaction extends Model {
   printed?: number
   //relationType?: RelationType
   // useOfCFDI?: UseOfCFDI
-  // type: TransactionType
+  type: any
   // cashBox?: CashBox
   // table?: Table
   creationUser?:string

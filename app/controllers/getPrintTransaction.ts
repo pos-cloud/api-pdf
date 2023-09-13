@@ -8,6 +8,7 @@ import { formatDate } from "../utils/formateDate";
 import { padString } from "../utils/padString";
 import { getCompany } from "../services/company.services";
 import { getVatCondition } from "../services/vat-condition.services";
+import { getTransactionTypeById } from "../services/transaction-types.services";
 
 export async function getPrintTransaction(
     req: RequestWithUser,
@@ -17,7 +18,8 @@ export async function getPrintTransaction(
     const transactionId: string = req.query.transactionId as string;
 
     try {
-        const config = await getConfig(database);
+        const configs = await getConfig(database);
+        const config = configs[0]
         if (!config) {
             return res.status(404).json({ message: "Config not found" });
         }
@@ -27,14 +29,15 @@ export async function getPrintTransaction(
         if (!transaction) {
             return res.status(404).json({ message: "Transaction not found" });
         }
+        const transactionType = await getTransactionTypeById(transaction.type, database)
 
         const company = await getCompany(database, transaction.company);
 
-        const vatConditionsConfig = await getVatCondition(database,config[0].companyVatCondition);
+        const vatConditionsConfig = await getVatCondition(database, config.companyVatCondition);
 
         const vatConditionsCompa = company?.vatCondition;
 
-        const vatConditionsCompany = await getVatCondition(database,vatConditionsCompa);
+        const vatConditionsCompany = await getVatCondition(database, vatConditionsCompa);
 
         const printers = await getPrinters(database, "Mostrador");
         const printer = printers[0];
@@ -49,78 +52,71 @@ export async function getPrintTransaction(
         const orientation = printer.orientation;
         const doc = new jsPDF(orientation, units, [pageWidth, pageHigh]);
 
+        // doc.line(6, 6, 205, 6, "FD"); // Linea Horizontal
+        doc.line(6, 6, 6, 48, "FD"); // Linea Vertical
+        doc.line(205, 6, 205, 48, "FD"); // Linea Vertical
+        doc.line(6, 48, 205, 48, "FD"); // Linea Horizontal
         doc.line(6, 6, 205, 6, "FD"); // Linea Horizontal
-        doc.line(6, 6, 6, 57, "FD"); // Linea Vertical
-        doc.line(205, 6, 205, 57, "FD"); // Linea Vertical
-        doc.line(6, 57, 205, 57, "FD"); // Linea Horizontal
-        doc.line(6, 15, 205, 15, "FD"); // Linea Horizontal
 
-        doc.line(107, 29, 107, 57); // Linea Vertical Medio
-        doc.line(99, 29, 115, 29, "FD"); // Linea Horizontal Medio
-        doc.line(99, 15, 99, 29, "FD"); // Linea Vertical Medio
-        doc.line(115, 15, 115, 29, "FD"); // Linea Vertical Medio
-        doc.line(99, 15, 115, 15, "FD"); // Linea Horizontal Medio
+        doc.line(107, 20, 107, 48); // Linea Vertical Medio
+        doc.line(99, 20, 115, 20, "FD"); // Linea Horizontal Medio
+        doc.line(99, 6, 99, 20, "FD"); // Linea Vertical Medio
+        doc.line(115, 6, 115, 20, "FD"); // Linea Vertical Medio
+        doc.line(99, 6, 115, 6, "FD"); // Linea Horizontal Medio
 
-        doc.line(6, 60, 205, 60, "FD"); // Linea Horizontal
-        doc.line(6, 60, 6, 80, "FD"); // Linea Vertical
-        doc.line(205, 60, 205, 80, "FD"); // Linea Vertical
-        doc.line(6, 80, 205, 80, "FD"); // Linea Horizontal
+        doc.line(6, 51, 205, 51, "FD"); // Linea Horizontal
+        doc.line(6, 51, 6, 70, "FD"); // Linea Vertical
+        doc.line(205, 51, 205, 70, "FD"); // Linea Vertical
+        doc.line(6, 70, 205, 70, "FD"); // Linea Horizontal
 
         doc.setFont("helvetica", "bold");
-        doc.text("ORIGINAL", 94, 12.2);
         doc.setFontSize(20);
 
-        doc.text(transaction.letter, 104.5, 23);
+        doc.text(transaction.letter, 104.5, 14);
         doc.setFontSize(20);
-        doc.text(config[0].companyName, 15, 26);
-        doc.text("FACTURA", 130, 25);
+        doc.text(config.companyPicture !== 'default.jpg' ? config.companyPicture : config.companyName , 15, 16);
+        doc.text(transactionType.name, 130, 16); // traer type service
         doc.setFont("helvetica", "normal");
 
         // Labels Primer Cuadro
         doc.setFontSize(8);
-        doc.setFont("helvetica", "bold");
-        doc.text("COD. " + padString(vatConditionsConfig?.code || "", 2), 101.4, 27);
+        if (transactionType.codes && config.country === 'AR') {
+            for (let i = 0; i < transactionType.codes.length; i++) {
+              if (
+                transactionType.codes[i].code &&
+                transaction.letter === transactionType.codes[i].letter
+              ) {
+                doc.setFontSize('8');
+                doc.text(
+                  'Coddd:' + padString(transactionType.codes[i].code.toString(), 2),
+                  101.4,
+                  18,
+                );
+              }
+            }
+          }
 
         doc.setFontSize(9);
-        doc.text("Razón Social:", 9, 36);
-        doc.text("Domicilio Comercial:", 9, 45);
-        doc.text("Condicion frente al IVA:", 9, 55);
+        doc.text(`Razón Social:  ${config.companyName}`, 9, 28);
+        doc.text(`Domicilio Comercial:   ${config.companyAddress}`, 9, 35);
+        doc.text(`Condicion frente al IVA:   ${vatConditionsConfig?.description || ""}`, 9, 42);
 
-        doc.text("Comp. Nro:", 165, 32);
-        doc.text("Punto de Venta:", 120, 32);
-        doc.text("Fecha de Emición:", 120, 37);
+        doc.text(`Punto de Venta: ${padString(transaction.origin, 4)}`, 120, 26);
+        doc.text(`Comp. Nro: ${padString(transaction.number, 10)}`, 165, 26);
+        doc.text(`Fecha de Emición: ${formatDate(transaction.startDate)} `, 120, 30);
 
-        doc.text("CUIT:", 120, 46);
-        doc.text("Ingresos Brutos:", 120, 50);
-        doc.text("Fecha de Inicio de Actividades:", 120, 55);
+        doc.text(`CUIT: ${config.companyIdentificationValue}`, 120, 38);
+        doc.text(`Ingresos Brutos: ${config.companyGrossIncome}`, 120, 42);
+        doc.text(`Fecha de Inicio de Actividades: ${formatDate(config.companyStartOfActivity)}`, 120, 46);
 
         // Labels Segundo Cuadro
         doc.setFontSize(8.9);
-        doc.text("CUIT:", 9, 64);
-        doc.text("Condicion frente al IVA:", 9, 70);
-        doc.text("Condicion de venta:", 9, 77);
-        doc.text("Apellido y Nombre / Razón Social:", 100, 64);
-        doc.text("Domicilio Comercial:", 100, 70);
+        doc.text(`CUIT: ${company?.CUIT || ""}`, 9, 57);
+        doc.text(`Condicion frente al IVA: ${vatConditionsCompany?.description || "Consumidor Final"}`, 9, 62);
+        doc.text(`Condicion de venta:`, 9, 67);
+        doc.text(`Apellido y Nombre / Razón Social: ${company?.name || ""}`, 100, 57);
+        doc.text(`Domicilio Comercial:  ${company?.address || ""}`, 100, 62);
 
-        // Datos primer cuadro
-        doc.setFont("helvetica", "normal");
-        doc.text(config[0].companyName, 31, 36);
-        doc.text(config[0].companyAddress, 42, 45);
-        doc.text(vatConditionsConfig?.description || "", 46, 55);
-        doc.text(config[0].companyIdentificationValue, 130, 46);
-        doc.text(config[0].companyGrossIncome, 146, 50);
-        doc.text(formatDate(config[0].companyStartOfActivity), 169, 55);
-        doc.text(formatDate(transaction.startDate), 149, 37);
-        doc.text(padString(transaction.number, 10), 184, 32);
-        doc.text(padString(transaction.origin, 4), 147, 32);
-
-        // Datos segundo cuadro
-        doc.text(company?.CUIT || "", 18, 64);
-        doc.text(vatConditionsCompany?.description || "", 46, 70);
-        doc.text(company?.name || "", 153, 64);
-        doc.text(company?.address || "", 132, 70);
-
-        doc.save("Factura.pdf");
         doc.autoPrint();
         const pdfBase64 = doc.output("datauristring");
         return res.status(200).send({ pdfBase64 });
