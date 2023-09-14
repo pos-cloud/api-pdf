@@ -12,7 +12,7 @@ jobs:
     - name: Install SSH key
       uses: shimataro/ssh-key-action@v2
       with:
-        key: "${{ secrets.SSH_KEY }}"
+        key: ${{ secrets.SSH_KEY }}
         known_hosts: " "
     - name: Add git.evennode.com to known_hosts
       run: |
@@ -25,4 +25,4 @@ jobs:
         git remote add evennode ${{ secrets.EVENNODE_REPO_URL }}
         git config --global user.email "${{ secrets.GIT_EMAIL }}"
         git config --global user.name "${{ secrets.GIT_NAME }}"
-        git push evennode +main:main
+        git push evennode +main
