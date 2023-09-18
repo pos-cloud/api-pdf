@@ -1,9 +1,11 @@
 import { Response } from "express";
-import { getArticleById } from "../services/article.services";
+import { getArticleData } from "../services/article.services";
 import { getPrinters } from "../services/printers.services";
 import RequestWithUser from "../interfaces/requestWithUser.interface";
 import { getBarcode } from "../utils/getBarcode";
 import { getCompanyPictureData } from "../services/getPicture.service";
+import { getConfig } from "../services/config.services";
+import * as path from "path";
 const { jsPDF } = require("jspdf");
 
 export async function getPrintArticle(
@@ -14,12 +16,16 @@ export async function getPrintArticle(
   const articleId: string = req.query.articleId as string;
   const token = req.headers.authorization
   try {
-    const article = await getArticleById(articleId, database);
-
+    const configs = await getConfig(database);
+    const config =configs[0]
+    if(!config){
+      return res.status(404).json({ message: "Config not found" });
+    }
+    const article = await getArticleData(articleId, token);
     if (!article) {
       return res.status(404).json({ message: "Article not found" });
     }
-
+   
     const printers = await getPrinters(database, "Etiqueta");
     const printer = printers[0];
 
@@ -49,7 +55,7 @@ export async function getPrintArticle(
           break;
         case 'image':
             try {
-              console.log('ACA ERROR:', eval(field.value))
+              console.log(config.companyPicture)
                 const img = await getCompanyPictureData(eval(field.value), token);
                 doc.addImage(img, 'jpeg', field.positionStartX, field.positionStartY, field.positionEndX, field.positionEndY);
             } catch (error) {
@@ -103,6 +109,7 @@ export async function getPrintArticle(
     }
 
     doc.autoPrint();
+    doc.save('article.pdf')
     const pdfBase64 = doc.output("datauristring")
     return res.status(200).send({ pdfBase64 });
   } catch (error) {

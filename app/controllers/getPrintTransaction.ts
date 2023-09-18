@@ -69,6 +69,15 @@ export async function getPrintTransaction(
         doc.line(205, 51, 205, 70, "FD"); // Linea Vertical
         doc.line(6, 70, 205, 70, "FD"); // Linea Horizontal
 
+        //CONTENIDO
+        doc.setFontSize(9)
+        doc.line(6, 72, 205, 72, "FD"); // Linea Horizontal
+        doc.line(6, 72, 6, 78, "FD"); // Linea Vertical
+        doc.line(205, 72, 205, 78, "FD"); // Linea Vertical
+        doc.line(6, 78, 205, 78, "FD"); // Linea Horizontal
+
+        doc.text('Descripción', 9, 76)
+
         doc.setFont("helvetica", "bold");
         doc.setFontSize(20);
 

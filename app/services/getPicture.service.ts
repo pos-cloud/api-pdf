@@ -1,8 +1,8 @@
 import axios from "axios";
 
-export function getCompanyPictureData(picture: string, token: string) {
+export async function getCompanyPictureData(picture: string, token: string) {
     try {
-        const URL = `${process.env.PORT_APIV1}get-image-base64-company`;
+        const URL = `${process.env.APIV1}get-image-base64-company`;
         const headers = {
             'Content-Type': 'application/json',
             'Authorization': token,
@@ -11,9 +11,11 @@ export function getCompanyPictureData(picture: string, token: string) {
             picture: picture,
         };
 
-        const response = axios.get(URL, { headers, params })
-        return response
+        const response = await axios.get(URL, { headers, params })
+      
+     return response.data 
     } catch (error) {
+        // console.log(error)
         throw Error(error);
     }
 

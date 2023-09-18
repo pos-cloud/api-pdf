@@ -2,7 +2,6 @@
   "name": "fe-ar",
   "version": "1.0.0",
   "description": "",
-  "type": "module",
   "main": "./server.ts",
   "scripts": {
     "dev": "nodemon ./server.ts",
