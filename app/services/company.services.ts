@@ -1,19 +1,21 @@
-import { ObjectId } from "mongodb";
-import MongoDBManager from "../db/connection";
 import Company from "../models/company";
+import axios from "axios";
 
-const mongoDBManager = new MongoDBManager();
-
-export async function getCompany(database: string, id: string): Promise<Company> {
+export async function getCompany(token: string, companyId: string): Promise<Company> {
     try {
-        await mongoDBManager.initConnection(database);
+        const URL = `${process.env.APIV1}company`;
+        const headers = {
+            'Authorization': token,
+        };
+        const params = {
+            id: companyId,
+        };
 
-        const companyCollection = mongoDBManager.getCollection('companies');
-        const company: Company = await companyCollection.findOne({
-            _id: new ObjectId(id),
-          });
-        return company;
+        const data = await axios.get(URL, { headers, params })
+        const response: Company = data.data.company
+
+        return response
     } catch (error) {
-        throw Error(error); 
+        console.log(error)
     }
 }

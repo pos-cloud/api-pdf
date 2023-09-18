@@ -1,6 +1,6 @@
-import HttpException from '../../exceptions/HttpException'
+import HttpException from '../exceptions/HttpException'
 import Responseable from './responsable.interface'
-import Responser from '../../utils/responser'
+import Responser from '../utils/responser'
 
 export default class WrongTokenException extends HttpException {
   constructor() {

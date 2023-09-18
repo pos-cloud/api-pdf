@@ -1,6 +1,8 @@
-import { ObjectId } from "mongodb";
 import Company from "./company";
 import Model from "./model";
+import {  TransactionType } from "./transaction-types";
+import VATCondition from "./vat-condition";
+
 export default interface Transaction extends Model {
   origin: number
   letter: string
@@ -10,6 +12,7 @@ export default interface Transaction extends Model {
   endDate: Date
   expirationDate: Date
   VATPeriod: string
+  VatCondition: VATCondition
   observation?: string
   basePrice: number
   exempt: number
@@ -40,7 +43,7 @@ export default interface Transaction extends Model {
   printed?: number
   //relationType?: RelationType
   // useOfCFDI?: UseOfCFDI
-  type: any
+  type: TransactionType
   // cashBox?: CashBox
   // table?: Table
   creationUser?:string
@@ -50,7 +53,7 @@ export default interface Transaction extends Model {
   // branchDestination?: Branch
   // depositOrigin?: Deposit
   // depositDestination?: Deposit
-   company?: any
+   company?: Company
   // transport?: Transport
   // shipmentMethod?: ShipmentMethod
   // priceList?: PriceList

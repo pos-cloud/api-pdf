@@ -28,6 +28,7 @@
   },
   "homepage": "https://github.com/pos-cloud/fe-ar#readme",
   "dependencies": {
+    "@sentry/node": "^7.69.0",
     "@types/moment": "^2.13.0",
     "axios": "^1.5.0",
     "bwip-js": "^3.4.5",

@@ -7,7 +7,7 @@ export default interface Company extends Model {
   entryDate: string
   type: CompanyType
   category?: string
-  vatCondition: any,
+  vatCondition: VATCondition,
   //identificationType: IdentificationType
   identificationValue: string,
   CUIT: string,

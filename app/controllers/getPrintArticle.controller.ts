@@ -16,7 +16,7 @@ export async function getPrintArticle(
   const articleId: string = req.query.articleId as string;
   const token = req.headers.authorization
   try {
-    const configs = await getConfig(database);
+    const configs = await getConfig(token);
     const config =configs[0]
     if(!config){
       return res.status(404).json({ message: "Config not found" });
@@ -54,10 +54,9 @@ export async function getPrintArticle(
           doc.line(field.positionStartX, field.positionStartY, field.positionEndX, field.positionEndY);
           break;
         case 'image':
-            try {
-              console.log(config.companyPicture)
+            try { 
                 const img = await getCompanyPictureData(eval(field.value), token);
-                doc.addImage(img, 'jpeg', field.positionStartX, field.positionStartY, field.positionEndX, field.positionEndY);
+                doc.addImage(img, 'JPEG', field.positionStartX, field.positionStartY, field.positionEndX, field.positionEndY);
             } catch (error) {
                 console.log(error)
             }

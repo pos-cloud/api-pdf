@@ -2,9 +2,9 @@ import {plainToClass} from 'class-transformer'
 import {validate, ValidationError} from 'class-validator'
 import * as express from 'express'
 
-import HttpException from '../../exceptions/HttpException'
+import HttpException from '../exceptions/HttpException'
 
-import Responser from '../../utils/responser'
+import Responser from '../utils/responser'
 
 function validationMiddleware<T>(
   type: any,
