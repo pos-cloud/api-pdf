@@ -8,7 +8,8 @@
 		"noImplicitAny": true,
 		"experimentalDecorators": true,
 		"emitDecoratorMetadata": true,
-		"moduleResolution": "node"
+		"moduleResolution": "node",
+		"module": "commonjs"
 	},
 	
 	"include": [

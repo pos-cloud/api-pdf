@@ -1,6 +1,5 @@
-
 import * as express from 'express';
-import App from "./app/app"
+import App from './app';
 
 const dotenv =  require('dotenv')
 dotenv.config();

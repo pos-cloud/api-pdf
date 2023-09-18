@@ -1,6 +1,6 @@
 import { json, urlencoded } from 'express';
 const morgan = require('morgan')
-import Routes from './routes';
+import Routes from './routes/index';
 const cors = require('cors')
 
 
