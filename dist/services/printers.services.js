@@ -1,17 +1,20 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getPrinters = void 0;
-const connection_1 = require("../db/connection");
-const mongoDBManager = new connection_1.default();
-async function getPrinters(database, query) {
+const axios_1 = require("axios");
+async function getPrinters(token, query) {
     try {
-        await mongoDBManager.initConnection(database);
-        const printersCollection = mongoDBManager.getCollection('printers');
-        const printers = await printersCollection.find({ printIn: query }).toArray();
-        return printers;
+        const URL = `${process.env.APIV1}printers`;
+        const headers = {
+            'Authorization': token,
+        };
+        const data = await axios_1.default.get(URL, { headers });
+        const response = data.data.printers;
+        const foundPrinter = response.find(printer => printer.printIn === query);
+        return foundPrinter;
     }
     catch (error) {
-        throw Error(error);
+        console.log(error);
     }
 }
 exports.getPrinters = getPrinters;
