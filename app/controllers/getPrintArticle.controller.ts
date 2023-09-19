@@ -5,7 +5,7 @@ import RequestWithUser from "../interfaces/requestWithUser.interface";
 import { getBarcode } from "../utils/getBarcode";
 import { getCompanyPictureData } from "../services/getPicture.service";
 import { getConfig } from "../services/config.services";
-import * as path from "path";
+const sharp = require('sharp');
 const { jsPDF } = require("jspdf");
 
 export async function getPrintArticle(
@@ -17,7 +17,7 @@ export async function getPrintArticle(
   const token = req.headers.authorization
   try {
     const configs = await getConfig(token);
-    const config =configs[0]
+    const config = configs[0]
     if(!config){
       return res.status(404).json({ message: "Config not found" });
     }
@@ -55,8 +55,15 @@ export async function getPrintArticle(
           break;
         case 'image':
             try { 
-                const img = await getCompanyPictureData(eval(field.value), token);
-                doc.addImage(img, 'JPEG', field.positionStartX, field.positionStartY, field.positionEndX, field.positionEndY);
+              const img = await getCompanyPictureData(eval(field.value), token);
+
+              // Decodificar la cadena de datos en un búfer de imagen
+              const imageBuffer = Buffer.from(img, 'base64');
+
+              // Reducir la calidad de la imagen antes de agregarla al PDF
+              const optimizedImageBuffer = await sharp(imageBuffer).jpeg({ quality: 70 }).toBuffer();
+
+              doc.addImage(optimizedImageBuffer, 'JPEG', field.positionStartX, field.positionStartY, field.positionEndX, field.positionEndY);
             } catch (error) {
                 console.log(error)
             }
