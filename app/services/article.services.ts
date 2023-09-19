@@ -16,7 +16,4 @@ export async function getArticleData(articleId: string, token: string) {
     } catch (error) {
         throw Error(error);
     }
-
-    /// test issues
-
 }
