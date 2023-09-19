@@ -31,28 +31,17 @@ export async function getPrintTransaction(
         if (!transaction) {
             return res.status(404).json({ message: "Transaction not found" });
         }
-      //  const transactionType = await getTransactionTypeById(transaction.type, database)
-  
-        // const company = await getCompany(token, transaction.company);
-    
-        // const vatConditionsConfig = await getVatCondition(database, config.companyVatCondition);
 
-        // const vatConditionsCompa = company?.vatCondition;
-        // console.log(vatConditionsCompa)
+        const printers = await getPrinters(token, "Mostrador");
 
-        // const vatConditionsCompany = await getVatCondition(database, vatConditionsCompa);
-
-        const printers = await getPrinters(database, "Mostrador");
-        const printer = printers[0];
-
-        if (!printer) {
+        if (!printers) {
             return res.status(404).json({ message: "Printer not found" });
         }
 
-        const pageWidth = printer.pageWidth;
-        const pageHigh = printer.pageHigh;
+        const pageWidth = printers.pageWidth;
+        const pageHigh = printers.pageHigh;
         const units = "mm";
-        const orientation = printer.orientation;
+        const orientation = printers.orientation;
         const doc = new jsPDF(orientation, units, [pageWidth, pageHigh]);
 
         // doc.line(6, 6, 205, 6, "FD"); // Linea Horizontal

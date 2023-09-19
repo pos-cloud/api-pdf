@@ -26,20 +26,19 @@ export async function getPrintArticle(
       return res.status(404).json({ message: "Article not found" });
     }
    
-    const printers = await getPrinters(database, "Etiqueta");
-    const printer = printers[0];
+    const printers = await getPrinters(token, "Etiqueta");
 
-    if (!printer) {
+    if (!printers) {
       return res.status(404).json({ message: "Printer not found" });
     }
 
-    const pageWidth = printer.pageWidth;
-    const pageHigh = printer.pageHigh;
+    const pageWidth = printers.pageWidth;
+    const pageHigh = printers.pageHigh;
     const units = 'mm';
-    const orientation = printer.orientation;
+    const orientation = printers.orientation;
     const doc = new jsPDF(orientation, units, [pageWidth, pageHigh]);
 
-    for (const field of printer.fields) {
+    for (const field of printers.fields) {
       switch (field.type) {
         case 'label':
           if (field.font !== 'default') {

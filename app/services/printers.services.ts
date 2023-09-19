@@ -1,17 +1,20 @@
 import Printer from "models/printer";
-import MongoDBManager from "../db/connection";
+import axios from "axios";
 
-const mongoDBManager = new MongoDBManager();
-
-export async function getPrinters(database: string, query: string): Promise<Printer[]> {
+export async function getPrinters(token: string, query: string): Promise<Printer | undefined> {
     try {
-        await mongoDBManager.initConnection(database);
+        const URL = `${process.env.APIV1}printers`;
+        const headers = {
+            'Authorization': token,
+        };
 
-        const printersCollection = mongoDBManager.getCollection('printers');
-        const printers: Printer[] = await printersCollection.find({ printIn : query }).toArray()
+        const data = await axios.get(URL, { headers })
+        const response: Printer[] = data.data.printers
 
-        return printers;
+        const foundPrinter = response.find(printer => printer.printIn === query);
+
+        return foundPrinter
     } catch (error) {
-        throw Error(error); 
+        console.log(error)
     }
 }
