@@ -50,7 +50,8 @@
     "mongodb": "^6.0.0",
     "mongoose": "^7.5.0",
     "morgan": "^1.10.0",
-    "rescode": "^0.1.10"
+    "rescode": "^0.1.10",
+    "sharp": "^0.32.6"
   },
   "devDependencies": {
     "@types/dotenv": "^8.2.0",
