@@ -6,7 +6,7 @@
   "main": "app/server.ts",
   "scripts": {
     "dev": "nodemon ./app/server.ts",
-		"evennode:dev": "cross-env NODE_ENV=development MONGO_URL=mongodb+srv://pos:pos@cluster0.fscmrqu.mongodb.net/ API_URL=http://apiv1.eu-4.evennode.com/api PORT=300 && node dist/server.js"
+		"prod": "node dist/server.js"
   },
   "compilerOptions": {
     "module": "commonjs",
