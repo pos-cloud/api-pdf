@@ -37,7 +37,7 @@ export async function getPrintTransaction(
             return res.status(404).json({ message: "Printer not found" });
         }
     
-        const movements = await getMovementOfArticle(transactionId,token)
+        // const movements = await getMovementsOfArticle(transactionId,token)
 
         const pageWidth = printers.pageWidth;
         const pageHigh = printers.pageHigh;

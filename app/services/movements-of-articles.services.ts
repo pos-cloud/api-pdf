@@ -1,7 +1,7 @@
 import axios from "axios";
 import MovementOfArticle from "models/movements-of-articles";
 
-export async function getMovementOfArticle(id: string, token: string): Promise<MovementOfArticle[]>{
+export async function getMovementsOfArticle(id: string, token: string): Promise<MovementOfArticle[]>{
   try {
      
     let query = 'where="transaction":"' + id + '"';
