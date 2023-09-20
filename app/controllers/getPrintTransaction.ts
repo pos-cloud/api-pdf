@@ -15,9 +15,8 @@ export async function getPrintTransaction(
     req: RequestWithUser,
     res: Response
 ) {
-    const database: string = req.database;
-    const transactionId: string = req.query.transactionId as string;
-    const token = req.headers.authorization
+  const transactionId: string = req.query.transactionId as string;
+  const token = req.headers.authorization
 
     try {
         const configs = await getConfig(token);
@@ -37,6 +36,8 @@ export async function getPrintTransaction(
         if (!printers) {
             return res.status(404).json({ message: "Printer not found" });
         }
+    
+        const movements = await getMovementOfArticle(transactionId,token)
 
         const pageWidth = printers.pageWidth;
         const pageHigh = printers.pageHigh;
@@ -44,7 +45,6 @@ export async function getPrintTransaction(
         const orientation = printers.orientation;
         const doc = new jsPDF(orientation, units, [pageWidth, pageHigh]);
 
-        // doc.line(6, 6, 205, 6, "FD"); // Linea Horizontal
         doc.line(6, 6, 6, 48, "FD"); // Linea Vertical
         doc.line(205, 6, 205, 48, "FD"); // Linea Vertical
         doc.line(6, 48, 205, 48, "FD"); // Linea Horizontal
@@ -62,7 +62,6 @@ export async function getPrintTransaction(
         doc.line(6, 70, 205, 70, "FD"); // Linea Horizontal
 
         //CONTENIDO
-                //CONTENIDO
         doc.setFontSize(9)
         doc.setFont("helvetica", "bold");
 
@@ -72,21 +71,33 @@ export async function getPrintTransaction(
         doc.line(6, 78, 205, 78, "FD"); // Linea Horizontal
     
         //colunas
-        doc.line(30, 72, 30, 78, "FD"); // Linea Vertical
-        doc.line(88, 72, 88, 78, "FD"); // Linea Vertical
-        doc.line(132, 72, 132, 78, "FD"); // Linea Vertical
+        doc.line(38, 72, 38, 78, "FD"); // Linea Vertical
+        doc.line(106, 72, 106, 78, "FD"); // Linea Vertical
+        doc.line(145, 72, 145, 78, "FD"); // Linea Vertical
         doc.line(170, 72, 170, 78, "FD"); // Linea Vertical
 
         doc.text('Código', 9, 76)
-        doc.text('Descripción', 32, 76)
-        doc.text('Precio unitario', 90, 76)
-        doc.text('IVA', 135, 76)
-        doc.text('Precio total', 174, 76)
+        doc.text('Descripción', 41, 76)
+        doc.text('Precio unitario', 109, 76)
+        doc.text('IVA', 148, 76)
+        doc.text('Precio total', 173, 76)
+        
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+      
+        let verticalPosition = 86; 
+        for (let i = 0; i < movements.length; i++) {
+          const movimiento = movements[i];
+          doc.text(movimiento.code, 9, verticalPosition);
+          doc.text(movimiento.description, 41, verticalPosition)
+          doc.text( `$${movimiento.unitPrice.toFixed(2).replace('.', ',')}`,109, verticalPosition)
+          // doc.text(movimiento.taxes[0].percentage + '%', 148, verticalPosition)
+          doc.text(`$ ${movimiento.salePrice.toFixed(2).replace('.', ',')}`,173,verticalPosition)
+          verticalPosition += 6;
+        }
         
         doc.setFontSize(20);
-
         doc.text(transaction.letter, 104.5, 14);
-        doc.setFontSize(20);
         if (config.companyPicture !== 'default.jpg') {
           const img = await getCompanyPictureData(config.companyPicture, token)
     
