@@ -62,24 +62,37 @@ export async function getPrintTransaction(
         doc.line(6, 70, 205, 70, "FD"); // Linea Horizontal
 
         //CONTENIDO
+                //CONTENIDO
         doc.setFontSize(9)
+        doc.setFont("helvetica", "bold");
+
         doc.line(6, 72, 205, 72, "FD"); // Linea Horizontal
         doc.line(6, 72, 6, 78, "FD"); // Linea Vertical
         doc.line(205, 72, 205, 78, "FD"); // Linea Vertical
         doc.line(6, 78, 205, 78, "FD"); // Linea Horizontal
+    
+        //colunas
+        doc.line(30, 72, 30, 78, "FD"); // Linea Vertical
+        doc.line(88, 72, 88, 78, "FD"); // Linea Vertical
+        doc.line(132, 72, 132, 78, "FD"); // Linea Vertical
+        doc.line(170, 72, 170, 78, "FD"); // Linea Vertical
 
-        doc.text('Descripción', 9, 76)
-
-        doc.setFont("helvetica", "bold");
+        doc.text('Código', 9, 76)
+        doc.text('Descripción', 32, 76)
+        doc.text('Precio unitario', 90, 76)
+        doc.text('IVA', 135, 76)
+        doc.text('Precio total', 174, 76)
+        
         doc.setFontSize(20);
 
         doc.text(transaction.letter, 104.5, 14);
         doc.setFontSize(20);
-        if(config.companyPicture !== 'default.jpg' ){
-            const img = await getCompanyPictureData(config.companyPicture, token)
-             doc.addImage(img, 'JPEG', 10, 60, 80,70)
-        }else{
-            doc.text(config.companyName , 15, 16);
+        if (config.companyPicture !== 'default.jpg') {
+          const img = await getCompanyPictureData(config.companyPicture, token)
+    
+          doc.addImage(img, 'JPEG', 15, 8, 45, 16)
+        } else {
+          doc.text(config.companyName, 15, 16);
         }
        
         doc.text(transaction.type.name, 130, 16);
@@ -126,7 +139,6 @@ export async function getPrintTransaction(
         doc.text(`Domicilio Comercial:  ${transaction.company?.address || ""}`, 100, 62);
 
         doc.autoPrint();
-        doc.save('factura.pdf')
         const pdfBase64 = doc.output("datauristring");
         return res.status(200).send({ pdfBase64 });
     } catch (error) {
