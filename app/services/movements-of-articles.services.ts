@@ -16,7 +16,6 @@ export async function getMovementsOfArticle(id: string, token: string): Promise<
   
     const data = await axios.get(URL, { headers, params })
     const response: MovementOfArticle[] = data.data.movementsOfArticles
-    console.log('aca',response)
     return response
    } catch (error) {
     console.log(error)
