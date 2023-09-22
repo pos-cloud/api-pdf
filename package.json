@@ -6,7 +6,7 @@
   "main": "app/server.ts",
   "scripts": {
     "dev": "nodemon ./app/server.ts",
-		"prod": "node dist/server.js"
+    "prod": "node dist/server.js"
   },
   "compilerOptions": {
     "module": "commonjs",
@@ -60,6 +60,6 @@
     "@types/node": "^20.4.5",
     "nodemon": "^3.0.1",
     "ts-node": "^10.9.1",
-    "typescript": "^5.1.6"
+    "typescript": "^5.2.2"
   }
 }
