@@ -5,8 +5,8 @@ import RequestWithUser from "../interfaces/requestWithUser.interface";
 import { getBarcode } from "../utils/getBarcode";
 import { getCompanyPictureData } from "../services/getPicture.service";
 import { getConfig } from "../services/config.services";
-const sharp = require('sharp');
 const { jsPDF } = require("jspdf");
+const fs = require('fs');
 
 export async function getPrintArticle(
   req: RequestWithUser,
@@ -55,14 +55,7 @@ export async function getPrintArticle(
         case 'image':
             try { 
               const img = await getCompanyPictureData(eval(field.value), token);
-
-              // Decodificar la cadena de datos en un búfer de imagen
-              const imageBuffer = Buffer.from(img, 'base64');
-
-              // Reducir la calidad de la imagen antes de agregarla al PDF
-              const optimizedImageBuffer = await sharp(imageBuffer).jpeg({ quality: 70 }).toBuffer();
-
-              doc.addImage(optimizedImageBuffer, 'JPEG', field.positionStartX, field.positionStartY, field.positionEndX, field.positionEndY);
+              doc.addImage(img, 'JPEG', field.positionStartX, field.positionStartY, field.positionEndX, field.positionEndY);
             } catch (error) {
                 console.log(error)
             }
@@ -114,9 +107,37 @@ export async function getPrintArticle(
     }
 
     doc.autoPrint();
-    doc.save('article.pdf')
-    const pdfBase64 = doc.output("datauristring")
-    return res.status(200).send({ pdfBase64 });
+    doc.save(`article-${articleId}.pdf`)
+    // const pdfBase64 = doc.output("datauristring")
+    // return res.status(200).send({ pdfBase64 });
+
+    const pdfPath = `article-${articleId}.pdf`; // Ruta al archivo PDF generado
+
+    // Verifica si el archivo PDF existe
+    if (fs.existsSync(pdfPath)) {
+      // Establece el tipo de contenido en la respuesta HTTP
+      res.contentType("application/pdf");
+      // Establece el encabezado para la descarga del archivo
+      res.setHeader('Content-Disposition', `inline; filename=./article-${articleId}.pdf`);
+      // Lee el archivo y lo transmite como respuesta
+      const fileStream = fs.createReadStream(pdfPath);
+      fileStream.pipe(res);
+
+      // Elimina el archivo después de enviarlo
+      fileStream.on('end', () => {
+      fs.unlink(pdfPath, (err: any) => {
+        if (err) {
+          console.error(`Error al eliminar el archivo ${pdfPath}: ${err}`);
+        } else {
+          console.log(`Archivo ${pdfPath} eliminado con éxito.`);
+        }
+      });
+    })
+    } else {
+      // Si el archivo no existe, devuelve un error 404
+      res.status(404).send('PDF no encontrado');
+    }
+
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal server error", error: error });
