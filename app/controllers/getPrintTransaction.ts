@@ -13,9 +13,10 @@ import { getCompanyPictureData } from "../services/getPicture.service";
 import { getMovementsOfArticle } from "../services/movements-of-articles.services";
 import Transaction from "../models/transaction";
 import Config from "../models/config";
+import { calculateQRAR } from "../utils/calculateQRAR";
 const sharp = require('sharp');
 
-const header = async (doc: any, transaction: Transaction, config: Config, token: string) => {
+const header = async (doc: any, transaction: Transaction, config: Config, token: string, imgLogo: string) => {
   doc.line(6, 6, 6, 48, "FD"); // Linea Vertical
   doc.line(205, 6, 205, 48, "FD"); // Linea Vertical
   doc.line(6, 48, 205, 48, "FD"); // Linea Horizontal
@@ -79,20 +80,14 @@ const header = async (doc: any, transaction: Transaction, config: Config, token:
   doc.text(transaction.letter, 104.5, 14);
   doc.text(transaction.type.name, 130, 16);
 
-  if (config.companyPicture !== 'default.jpg') {
-    const img = await getCompanyPictureData(config.companyPicture, token)
+    if(typeof imgLogo !== "undefined"){ 
+      doc.addImage( imgLogo, 'JPEG', 15, 8, 45, 16)
+    }else{
+      doc.text(config.companyName, 15, 16);
+    }
 
-    const imageBuffer = Buffer.from(img, 'base64');
-
-    const optimizedImageBuffer = await sharp(imageBuffer).jpeg({ quality: 70 }).toBuffer();
-
-    doc.addImage(optimizedImageBuffer, 'JPEG', 15, 8, 45, 16)
-  } else {
-    doc.text(config.companyName, 15, 16);
-  }
   doc.setFont("helvetica", "normal");
 
-  // Labels Primer Cuadro
   doc.setFontSize(8);
 
   if (transaction.type.codes && config.country === 'AR') {
@@ -112,12 +107,14 @@ const header = async (doc: any, transaction: Transaction, config: Config, token:
   }
 }
 
-const footer = (doc: any, transaction: Transaction) => {
+async function footer (doc: any, transaction: Transaction, qrDate: string){
   doc.line(6, 180, 205, 180, "FD"); // Linea Horizontal
   doc.line(6, 180, 6, 250, "FD"); // Linea Vertical
   doc.line(205, 180, 205, 250, "FD"); // Linea Vertical
   doc.line(6, 250, 205, 250, "FD"); // Linea Horizontal
 
+  doc.addImage(qrDate, 'png', 10, 249, 43, 43);
+  
   doc.setFontSize(13)
   doc.setFont("helvetica", "bold");
   doc.text(`CAE N°: ${transaction?.CAE  || ''}`, 155, 260)
@@ -151,6 +148,8 @@ export async function getPrintTransaction(
       return res.status(404).json({ message: "Printer not found" });
     }
 
+    const qrDate = await calculateQRAR(transaction, config)
+
     const movements = await getMovementsOfArticle(transactionId, token)
 
     const pageWidth = printers.pageWidth;
@@ -159,8 +158,16 @@ export async function getPrintTransaction(
     const orientation = printers.orientation;
     const doc = new jsPDF(orientation, units, [pageWidth, pageHigh]);
 
+    // if (config.companyPicture !== 'default.jpg') {
+      const imgLogo = await getCompanyPictureData(config.companyPicture, token)
+      const imageBuffer = Buffer.from(imgLogo, 'base64');
+      const optimizedImageBuffer = await sharp(imageBuffer).jpeg({ quality: 70 }).toBuffer();
+    // } else {
+    //   doc.text(config.companyName, 15, 16);
+    // }
 
-    footer(doc, transaction)
+    footer(doc, transaction, qrDate)
+
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
     if (movements) {
@@ -175,8 +182,9 @@ export async function getPrintTransaction(
         verticalPosition += 6;
       }
     }
-     header(doc, transaction, config, token)
+    header(doc, transaction, config, token, optimizedImageBuffer)
     doc.autoPrint();
+    doc.save('factu.pdf')
     const pdfBase64 = doc.output("datauristring");
     return res.status(200).send({ pdfBase64 });
   } catch (error) {
