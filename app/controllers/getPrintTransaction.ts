@@ -13,7 +13,7 @@ import { getCompanyPictureData } from "./../services/getPicture.service";
 import { getMovementsOfArticle } from "./../services/movements-of-articles.services";
 import Transaction from "./../models/transaction";
 import Config from "./../models/config";
-import { calculateQRAR } from "../utils/calculateQRAR";
+import { calculateQRAR } from "./../utils/calculateQRAR";
 const sharp = require('sharp');
 
 const header = async (doc: any, transaction: Transaction, config: Config, token: string, imgLogo: string) => {
