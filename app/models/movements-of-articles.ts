@@ -12,12 +12,15 @@ export default interface MovementOfArticle extends Model {
     value: string
     amount: number
   }[]
-  taxes: {
+  taxes:[
+    {
     // tax: Tax
     percentage: number
     taxBase: number
     taxAmount: number
-  }[]
+  }
+  ]
+
 //   movementParent: MovementOfArticle
   isOptional: boolean
   costPrice: number

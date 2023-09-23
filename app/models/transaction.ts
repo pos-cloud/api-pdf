@@ -21,7 +21,7 @@ export default interface Transaction extends Model {
   commissionAmount?: number
   administrativeExpenseAmount?: number
   otherExpenseAmount?: number
-  //taxes?: Taxes[]
+  taxes?: any
   totalPrice: number
   roundingAmount?: number
   diners?: number
