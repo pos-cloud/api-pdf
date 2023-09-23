@@ -6,8 +6,8 @@ const printers_services_1 = require("../services/printers.services");
 const config_services_1 = require("../services/config.services");
 const { jsPDF } = require("jspdf");
 const formateDate_1 = require("../utils/formateDate");
-const padString_1 = require("../utils/padString");
-const getPicture_service_1 = require("../services/getPicture.service");
+const padString_1 = require("./../utils/padString");
+const getPicture_service_1 = require("./../services/getPicture.service");
 const calculateQRAR_1 = require("../utils/calculateQRAR");
 const sharp = require('sharp');
 const header = async (doc, transaction, config, token, imgLogo) => {
