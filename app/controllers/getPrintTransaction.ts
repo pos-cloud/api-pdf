@@ -10,7 +10,7 @@ import { getCompany } from "../services/company.services";
 import { getVatCondition } from "../services/vat-condition.services";
 import { getTransactionTypeById } from "../services/transaction-types.services";
 import { getCompanyPictureData } from "../services/getPicture.service";
-import { getMovementsOfArticle } from "../services/movements-of-articles.services";
+//import { getMovementsOfArticle } from "../services/movements-of-articles.services";
 import Transaction from "../models/transaction";
 import Config from "../models/config";
 import { calculateQRAR } from "../utils/calculateQRAR";
@@ -150,7 +150,7 @@ export async function getPrintTransaction(
 
     const qrDate = await calculateQRAR(transaction, config)
 
-    const movements = await getMovementsOfArticle(transactionId, token)
+    //const movements = await getMovementsOfArticle(transactionId, token)
 
     const pageWidth = printers.pageWidth;
     const pageHigh = printers.pageHigh;
@@ -170,18 +170,18 @@ export async function getPrintTransaction(
 
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
-    if (movements) {
-      let verticalPosition = 84;
-      for (let i = 0; i < movements.length; i++) {
-        const movimiento = movements[i];
-        doc.text(movimiento.code, 9, verticalPosition);
-        doc.text(movimiento.description, 41, verticalPosition)
-        doc.text(`$${movimiento.unitPrice.toFixed(2).replace('.', ',')}`, 109, verticalPosition)
-        doc.text(movimiento.taxes[0]?.percentage !== undefined ? `${movimiento.taxes[0]?.percentage}%` : "", 148, verticalPosition)
-        doc.text(`$${movimiento.salePrice.toFixed(2).replace('.', ',')}`, 173, verticalPosition)
-        verticalPosition += 6;
-      }
-    }
+    // if (movements) {
+    //   let verticalPosition = 84;
+    //   for (let i = 0; i < movements.length; i++) {
+    //     const movimiento = movements[i];
+    //     doc.text(movimiento.code, 9, verticalPosition);
+    //     doc.text(movimiento.description, 41, verticalPosition)
+    //     doc.text(`$${movimiento.unitPrice.toFixed(2).replace('.', ',')}`, 109, verticalPosition)
+    //     doc.text(movimiento.taxes[0]?.percentage !== undefined ? `${movimiento.taxes[0]?.percentage}%` : "", 148, verticalPosition)
+    //     doc.text(`$${movimiento.salePrice.toFixed(2).replace('.', ',')}`, 173, verticalPosition)
+    //     verticalPosition += 6;
+    //   }
+    // }
     header(doc, transaction, config, token, optimizedImageBuffer)
     doc.autoPrint();
     doc.save('factu.pdf')
