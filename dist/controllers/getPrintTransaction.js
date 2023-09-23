@@ -8,7 +8,7 @@ const { jsPDF } = require("jspdf");
 const formateDate_1 = require("../utils/formateDate");
 const padString_1 = require("./../utils/padString");
 const getPicture_service_1 = require("./../services/getPicture.service");
-const calculateQRAR_1 = require("./../utils/calculateQRAR");
+//import { calculateQRAR } from "./../utils/calculateQRAR";
 const sharp = require('sharp');
 const header = async (doc, transaction, config, token, imgLogo) => {
     var _a, _b, _c, _d, _e;
@@ -109,7 +109,7 @@ async function getPrintTransaction(req, res) {
         if (!printers) {
             return res.status(404).json({ message: "Printer not found" });
         }
-        const qrDate = await (0, calculateQRAR_1.calculateQRAR)(transaction, config);
+        // const qrDate = await calculateQRAR(transaction, config)
         //const movements = await getMovementsOfArticle(transactionId, token)
         const pageWidth = printers.pageWidth;
         const pageHigh = printers.pageHigh;
@@ -123,7 +123,7 @@ async function getPrintTransaction(req, res) {
         // } else {
         //   doc.text(config.companyName, 15, 16);
         // }
-        footer(doc, transaction, qrDate);
+        // footer(doc, transaction, qrDate)
         doc.setFontSize(10);
         doc.setFont("helvetica", "normal");
         // if (movements) {

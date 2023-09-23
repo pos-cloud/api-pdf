@@ -13,7 +13,7 @@ import { getCompanyPictureData } from "./../services/getPicture.service";
 import { getMovementsOfArticle } from "./../services/movements-of-articles.services";
 import Transaction from "./../models/transaction";
 import Config from "./../models/config";
-import { calculateQRAR } from "./../utils/calculateQRAR";
+//import { calculateQRAR } from "./../utils/calculateQRAR";
 const sharp = require('sharp');
 
 const header = async (doc: any, transaction: Transaction, config: Config, token: string, imgLogo: string) => {
@@ -148,7 +148,7 @@ export async function getPrintTransaction(
       return res.status(404).json({ message: "Printer not found" });
     }
 
-    const qrDate = await calculateQRAR(transaction, config)
+   // const qrDate = await calculateQRAR(transaction, config)
 
     //const movements = await getMovementsOfArticle(transactionId, token)
 
@@ -166,7 +166,7 @@ export async function getPrintTransaction(
     //   doc.text(config.companyName, 15, 16);
     // }
 
-    footer(doc, transaction, qrDate)
+   // footer(doc, transaction, qrDate)
 
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
