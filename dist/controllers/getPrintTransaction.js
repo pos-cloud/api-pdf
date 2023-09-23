@@ -8,7 +8,6 @@ const { jsPDF } = require("jspdf");
 const formateDate_1 = require("../utils/formateDate");
 const padString_1 = require("../utils/padString");
 const getPicture_service_1 = require("../services/getPicture.service");
-const movements_of_articles_services_1 = require("../services/movements-of-articles.services");
 const calculateQRAR_1 = require("../utils/calculateQRAR");
 const sharp = require('sharp');
 const header = async (doc, transaction, config, token, imgLogo) => {
@@ -94,7 +93,6 @@ async function footer(doc, transaction, qrDate) {
     doc.text(transaction.CAEExpirationDate !== undefined ? `Fecha de Vto. CAE: ${(0, formateDate_1.formatDate)(transaction === null || transaction === void 0 ? void 0 : transaction.CAEExpirationDate)}` : 'Fecha de Vto. CAE:', 126, 266);
 }
 async function getPrintTransaction(req, res) {
-    var _a, _b;
     const transactionId = req.query.transactionId;
     const token = req.headers.authorization;
     try {
@@ -112,7 +110,7 @@ async function getPrintTransaction(req, res) {
             return res.status(404).json({ message: "Printer not found" });
         }
         const qrDate = await (0, calculateQRAR_1.calculateQRAR)(transaction, config);
-        const movements = await (0, movements_of_articles_services_1.getMovementsOfArticle)(transactionId, token);
+        //const movements = await getMovementsOfArticle(transactionId, token)
         const pageWidth = printers.pageWidth;
         const pageHigh = printers.pageHigh;
         const units = "mm";
@@ -128,18 +126,18 @@ async function getPrintTransaction(req, res) {
         footer(doc, transaction, qrDate);
         doc.setFontSize(10);
         doc.setFont("helvetica", "normal");
-        if (movements) {
-            let verticalPosition = 84;
-            for (let i = 0; i < movements.length; i++) {
-                const movimiento = movements[i];
-                doc.text(movimiento.code, 9, verticalPosition);
-                doc.text(movimiento.description, 41, verticalPosition);
-                doc.text(`$${movimiento.unitPrice.toFixed(2).replace('.', ',')}`, 109, verticalPosition);
-                doc.text(((_a = movimiento.taxes[0]) === null || _a === void 0 ? void 0 : _a.percentage) !== undefined ? `${(_b = movimiento.taxes[0]) === null || _b === void 0 ? void 0 : _b.percentage}%` : "", 148, verticalPosition);
-                doc.text(`$${movimiento.salePrice.toFixed(2).replace('.', ',')}`, 173, verticalPosition);
-                verticalPosition += 6;
-            }
-        }
+        // if (movements) {
+        //   let verticalPosition = 84;
+        //   for (let i = 0; i < movements.length; i++) {
+        //     const movimiento = movements[i];
+        //     doc.text(movimiento.code, 9, verticalPosition);
+        //     doc.text(movimiento.description, 41, verticalPosition)
+        //     doc.text(`$${movimiento.unitPrice.toFixed(2).replace('.', ',')}`, 109, verticalPosition)
+        //     doc.text(movimiento.taxes[0]?.percentage !== undefined ? `${movimiento.taxes[0]?.percentage}%` : "", 148, verticalPosition)
+        //     doc.text(`$${movimiento.salePrice.toFixed(2).replace('.', ',')}`, 173, verticalPosition)
+        //     verticalPosition += 6;
+        //   }
+        // }
         header(doc, transaction, config, token, optimizedImageBuffer);
         doc.autoPrint();
         doc.save('factu.pdf');
