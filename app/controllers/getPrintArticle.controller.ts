@@ -12,20 +12,23 @@ export async function getPrintArticle(
   req: RequestWithUser,
   res: Response
 ) {
-  const articleId: string = req.query.articleId as string;
-  const quantity: number = req.query.quantity as unknown as number
   const token = req.headers.authorization
+  const articleId: string = req.query.articleId as string;
+  const quantity: string = req.query.quantity as string;
+
   try {
     const configs = await getConfig(token);
     const config = configs[0]
-    if(!config){
+    if (!config) {
       return res.status(404).json({ message: "Config not found" });
+    }
+    if(!quantity){
+      return res.status(404).json({ message: "no quantity found" });
     }
     const article = await getArticleData(articleId, token);
     if (!article) {
       return res.status(404).json({ message: "Article not found" });
     }
-   
     const printer = await getPrinters(token, "Etiqueta");
 
     if (!printer) {
@@ -38,179 +41,87 @@ export async function getPrintArticle(
     const orientation = printer.orientation;
     const doc = new jsPDF(orientation, units, [pageWidth, pageHigh]);
 
-  if(quantity && quantity > 1){
-    for (let index = 0; index < quantity; index++) {
-      if (index > 0) {
-        doc.addPage();
-      }
-      for (const field of printer.fields) {
-        switch (field.type) {
-          case 'label':
-            if (field.font !== 'default') {
-              doc.setFont(field.font, field.fontType);
-            }
-            doc.setFontSize(field.fontSize);
-            doc.text(field.positionStartX, field.positionStartY, field.value);
-            break;
-          case 'line':
-            doc.setLineWidth(field.fontSize);
-            doc.line(field.positionStartX, field.positionStartY, field.positionEndX, field.positionEndY);
-            break;
-          case 'image':
-              try { 
+    if (quantity && parseInt(quantity) >= 1) {
+      for (let index = 0; index < parseInt(quantity); index++) {
+        if (index > 0) {
+          console.log(index)
+          doc.addPage();
+        }
+        for (const field of printer.fields) {
+          switch (field.type) {
+            case 'label':
+              if (field.font !== 'default') {
+                doc.setFont(field.font, field.fontType);
+              }
+              doc.setFontSize(field.fontSize);
+              doc.text(field.positionStartX, field.positionStartY, field.value);
+              break;
+            case 'line':
+              doc.setLineWidth(field.fontSize);
+              doc.line(field.positionStartX, field.positionStartY, field.positionEndX, field.positionEndY);
+              break;
+            case 'image':
+              try {
                 const img = await getCompanyPictureData(eval(field.value), token);
                 doc.addImage(img, 'JPEG', field.positionStartX, field.positionStartY, field.positionEndX, field.positionEndY);
               } catch (error) {
-                  console.log(error)
+                console.log(error);
               }
               break;
-          case 'barcode':
-            try {
-              const response = await getBarcode('code128', eval(field.value));
-              doc.addImage(response, 'png', field.positionStartX, field.positionStartY, field.positionEndX, field.positionEndY);
-            } catch (error) {
-              console.log(error)
-            }
-            break;
-          case 'data':
-            if (field.font !== 'default') {
-              doc.setFont(field.font, field.fontType);
-            }
-            doc.setFontSize(field.fontSize);
-  
-            try {
-              const text = field.positionEndX || field.positionEndY
-                ? eval(field.value).toString().slice(field.positionEndX, field.positionEndY)
-                : eval(field.value).toString();
-              doc.text(field.positionStartX, field.positionStartY, text);
-            } catch (e) {
-              doc.text(field.positionStartX, field.positionStartY, " ");
-            }
-            break;
-          case 'dataEsp':
-            if (field.font !== 'default') {
-              doc.setFont(field.font);
-            }
-            doc.setFont("", field.fontType);
-            doc.setFontSize(field.fontSize);
-  
-            try {
-              const text = field.positionEndX || field.positionEndY
-                ? eval(field.value).toString().slice(field.positionEndX, field.positionEndY)
-                : eval(field.value).toString();
-  
-              doc.text(field.positionStartX, field.positionStartY, text);
-            } catch (e) {
-              doc.text(field.positionStartX, field.positionStartY, " ");
-            }
-            break;
-          default:
-            break;
+            case 'barcode':
+              try {
+                const response = await getBarcode('code128', eval(field.value));
+                doc.addImage(response, 'png', field.positionStartX, field.positionStartY, field.positionEndX, field.positionEndY);
+              } catch (error) {
+                console.log(error);
+              }
+              break;
+            case 'data':
+            case 'dataEsp':
+              if (field.font !== 'default') {
+                doc.setFont(field.font, field.fontType);
+              }
+              doc.setFontSize(field.fontSize);
+              try {
+                const text = field.positionEndX || field.positionEndY
+                  ? eval(field.value).toString().slice(field.positionEndX, field.positionEndY)
+                  : eval(field.value).toString();
+                doc.text(field.positionStartX, field.positionStartY, text);
+              } catch (e) {
+                doc.text(field.positionStartX, field.positionStartY, " ");
+              }
+              break;
+            default:
+              break;
+          }
         }
-    }
-  
-  }
-  }else{
-    for (const field of printer.fields) {
-      switch (field.type) {
-        case 'label':
-          if (field.font !== 'default') {
-            doc.setFont(field.font, field.fontType);
-          }
-          doc.setFontSize(field.fontSize);
-          doc.text(field.positionStartX, field.positionStartY, field.value);
-          break;
-        case 'line':
-          doc.setLineWidth(field.fontSize);
-          doc.line(field.positionStartX, field.positionStartY, field.positionEndX, field.positionEndY);
-          break;
-        case 'image':
-            try { 
-              const img = await getCompanyPictureData(eval(field.value), token);
-              doc.addImage(img, 'JPEG', field.positionStartX, field.positionStartY, field.positionEndX, field.positionEndY);
-            } catch (error) {
-                console.log(error)
-            }
-            break;
-        case 'barcode':
-          try {
-            const response = await getBarcode('code128', eval(field.value));
-            doc.addImage(response, 'png', field.positionStartX, field.positionStartY, field.positionEndX, field.positionEndY);
-          } catch (error) {
-            console.log(error)
-          }
-          break;
-        case 'data':
-          if (field.font !== 'default') {
-            doc.setFont(field.font, field.fontType);
-          }
-          doc.setFontSize(field.fontSize);
-
-          try {
-            const text = field.positionEndX || field.positionEndY
-              ? eval(field.value).toString().slice(field.positionEndX, field.positionEndY)
-              : eval(field.value).toString();
-            doc.text(field.positionStartX, field.positionStartY, text);
-          } catch (e) {
-            doc.text(field.positionStartX, field.positionStartY, " ");
-          }
-          break;
-        case 'dataEsp':
-          if (field.font !== 'default') {
-            doc.setFont(field.font);
-          }
-          doc.setFont("helvetica", field.fontType);
-          doc.setFontSize(field.fontSize);
-
-          try {
-            const text = field.positionEndX || field.positionEndY
-              ? eval(field.value).toString().slice(field.positionEndX, field.positionEndY)
-              : eval(field.value).toString();
-
-            doc.text(field.positionStartX, field.positionStartY, text);
-          } catch (e) {
-            doc.text(field.positionStartX, field.positionStartY, " ");
-          }
-          break;
-        default:
-          break;
       }
     }
-  }
-
 
     doc.autoPrint();
     doc.save(`article-${articleId}.pdf`)
-    // const pdfBase64 = doc.output("datauristring")
-    // return res.status(200).send({ pdfBase64 });
 
-    const pdfPath = `article-${articleId}.pdf`; // Ruta al archivo PDF generado
+    const pdfPath = `article-${articleId}.pdf`;
 
-    // Verifica si el archivo PDF existe
     if (fs.existsSync(pdfPath)) {
-      // Establece el tipo de contenido en la respuesta HTTP
       res.contentType("application/pdf");
-      // Establece el encabezado para la descarga del archivo
       res.setHeader('Content-Disposition', `inline; filename=./article-${articleId}.pdf`);
-      // Lee el archivo y lo transmite como respuesta
+
       const fileStream = fs.createReadStream(pdfPath);
       fileStream.pipe(res);
 
-      // Elimina el archivo después de enviarlo
       fileStream.on('end', () => {
-      fs.unlink(pdfPath, (err: any) => {
-        if (err) {
-          console.error(`Error al eliminar el archivo ${pdfPath}: ${err}`);
-        } else {
-          console.log(`Archivo ${pdfPath} eliminado con éxito.`);
-        }
-      });
-    })
+        fs.unlink(pdfPath, (err: any) => {
+          if (err) {
+            console.error(`Error al eliminar el archivo ${pdfPath}: ${err}`);
+          } else {
+            console.log(`Archivo ${pdfPath} eliminado con éxito.`);
+          }
+        });
+      })
     } else {
-      // Si el archivo no existe, devuelve un error 404
       res.status(404).send('PDF no encontrado');
     }
-
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal server error", error: error });
