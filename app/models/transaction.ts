@@ -1,5 +1,6 @@
 import Company from "./company";
 import Model from "./model";
+import Taxes from "./tax";
 import {  TransactionType } from "./transaction-types";
 import VATCondition from "./vat-condition";
 
@@ -21,7 +22,7 @@ export default interface Transaction extends Model {
   commissionAmount?: number
   administrativeExpenseAmount?: number
   otherExpenseAmount?: number
-  taxes?: any
+  taxes?: Taxes
   totalPrice: number
   roundingAmount?: number
   diners?: number

@@ -35,7 +35,6 @@ export async function calculateQRAR(transaction: Transaction, config: Config) {
 
    url += objJsonB64; 
  
-  //  const response = await getQRCode(url)
-  const response = getBarcode('qr',url);
+  const response = await getQRCode(url)
    return response 
   }
