@@ -11,7 +11,6 @@ class PrintRoutes {
     }
     intializeRoutes() {
         this.router.get('/article', [auth_middleware_1.default], getPrintArticle_controller_1.getPrintArticle);
-        this.router.get('/articles', [auth_middleware_1.default]);
         this.router.get('/transaction', [auth_middleware_1.default], getPrintTransaction_1.getPrintTransaction);
     }
 }
