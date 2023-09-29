@@ -40,11 +40,9 @@ export async function getPrintArticle(
     const units = 'mm';
     const orientation = printer.orientation;
     const doc = new jsPDF(orientation, units, [pageWidth, pageHigh]);
-
     if (quantity && parseInt(quantity) >= 1) {
       for (let index = 0; index < parseInt(quantity); index++) {
         if (index > 0) {
-          console.log(index)
           doc.addPage();
         }
         for (const field of printer.fields) {

@@ -11,9 +11,11 @@ import { getMovementsOfArticle } from "./../services/movements-of-articles.servi
 import Transaction from "./../models/transaction";
 import Config from "./../models/config";
 import { calculateQRAR } from "./../utils/calculateQRAR";
+import { transform } from "../utils/round-number";
 const sharp = require('sharp');
+const fs = require('fs');
 
-const header = async (doc: any, transaction: Transaction, config: Config, token: string, imgLogo: string) => {
+const header = async (doc: any, transaction: Transaction, config: Config, imgLogo: string) => {
   doc.line(6, 6, 6, 48, "FD"); // Linea Vertical
   doc.line(205, 6, 205, 48, "FD"); // Linea Vertical
   doc.line(6, 48, 205, 48, "FD"); // Linea Horizontal
@@ -42,15 +44,15 @@ const header = async (doc: any, transaction: Transaction, config: Config, token:
   //colunas
   doc.line(20, 72, 20, 78, "FD"); // Linea Vertical
   doc.line(60, 72, 60, 78, "FD"); // Linea Vertical
-  doc.line(123, 72, 123, 78, "FD"); // Linea Vertical
-  doc.line(155, 72, 155, 78, "FD"); // Linea Vertical
+  doc.line(130, 72, 130, 78, "FD"); // Linea Vertical
+  doc.line(160, 72, 160, 78, "FD"); // Linea Vertical
   doc.line(180, 72, 180, 78, "FD"); // Linea Vertical
 
   doc.text('Cant.', 9, 76)
   doc.text('Código', 24, 76)
   doc.text('Descripción', 65, 76)
-  doc.text('Precio unitario', 126, 76)
-  doc.text('IVA', 160, 76)
+  doc.text('Precio unitario', 132, 76)
+  doc.text('IVA', 163, 76)
   doc.text('Precio total', 182, 76)
 
   doc.setFont("helvetica", "bold");
@@ -79,11 +81,11 @@ const header = async (doc: any, transaction: Transaction, config: Config, token:
   doc.text(transaction.letter, 104.5, 14);
   doc.text(transaction.type.name, 130, 16);
 
-    if(typeof imgLogo !== "undefined"){ 
-      doc.addImage(imgLogo, 'JPEG', 15, 8, 45, 16)
-    }else{
-      doc.text(config.companyName, 15, 16);
-    }
+  if (typeof imgLogo !== "undefined") {
+    doc.addImage(imgLogo, 'JPEG', 15, 8, 45, 16)
+  } else {
+    doc.text(config.companyName, 15, 16);
+  }
 
   doc.setFont("helvetica", "normal");
 
@@ -95,7 +97,6 @@ const header = async (doc: any, transaction: Transaction, config: Config, token:
         transaction.type.codes[i].code &&
         transaction.letter === transaction.type.codes[i].letter
       ) {
-        console.log('hello')
         doc.setFontSize(8);
         doc.text(
           'Cod:' + padString(transaction.type.codes[i].code.toString(), 2),
@@ -107,30 +108,34 @@ const header = async (doc: any, transaction: Transaction, config: Config, token:
   }
 }
 
-async function footer (doc: any, transaction: Transaction, qrDate: string){
+async function footer(doc: any, transaction: Transaction, qrDate: string) {
   doc.line(6, 208, 205, 208, "FD"); // Linea Horizontal
   doc.line(6, 208, 6, 250, "FD"); // Linea Vertical
   doc.line(205, 208, 205, 250, "FD"); // Linea Vertical
   doc.line(6, 250, 205, 250, "FD"); // Linea Horizontal
 
   doc.addImage(qrDate, 'png', 10, 251, 43, 43);
-  
+
   doc.setFontSize(10)
   doc.text('Importe Neto Gravado:', 130, 215)
   doc.text('Subtotal:', 130, 221)
-  doc.text('Descuentos:', 130, 227)
+  doc.text('Descuento:', 130, 227)
   doc.text('Total:', 130, 233)
   doc.setFontSize(10)
-  
-  // doc.text(transaction.taxes.tax, 130, 200)
+
+  doc.text(`$${transaction.taxes[0].taxBase}` ?? '', 182, 215)
+  doc.text(`$${transaction.totalPrice}` ?? '', 182, 221)
+  doc.text(`$ (${transform(transaction.discountAmount / (1 + transaction.taxes[0].percentage / 100), 2)})` ?? '', 182, 227)
+  doc.text(`$${transaction.totalPrice} ` ?? '', 182, 233)
+
   doc.setFont("helvetica", "bold");
-  doc.text(`CAE N°: ${transaction?.CAE  || ''}`, 140, 260)
+  doc.text(`CAE N°: ${transaction?.CAE || ''}`, 140, 260)
   doc.text(transaction.CAEExpirationDate !== undefined ? `Fecha de Vto. CAE: ${formatDate(transaction?.CAEExpirationDate)}` : 'Fecha de Vto. CAE:', 119.4, 266)
 }
 
 export async function getPrintTransaction(
-    req: RequestWithUser,
-    res: Response
+  req: RequestWithUser,
+  res: Response
 ) {
   const transactionId: string = req.query.transactionId as string;
   const token = req.headers.authorization
@@ -154,7 +159,7 @@ export async function getPrintTransaction(
       return res.status(404).json({ message: "Printer not found" });
     }
 
-   const qrDate = await calculateQRAR(transaction, config)
+    const qrDate = await calculateQRAR(transaction, config)
 
     const movements = await getMovementsOfArticle(transactionId, token)
 
@@ -165,9 +170,9 @@ export async function getPrintTransaction(
     const doc = new jsPDF(orientation, units, [pageWidth, pageHigh]);
 
     // if (config.companyPicture !== 'default.jpg') {
-      const imgLogo = await getCompanyPictureData(config.companyPicture, token)
-      const imageBuffer = Buffer.from(imgLogo, 'base64');
-      const optimizedImageBuffer = await sharp(imageBuffer).jpeg({ quality: 70 }).toBuffer();
+    const imgLogo = await getCompanyPictureData(config.companyPicture, token)
+    const imageBuffer = Buffer.from(imgLogo, 'base64');
+    const optimizedImageBuffer = await sharp(imageBuffer).jpeg({ quality: 70 }).toBuffer();
     // } else {
     //   doc.text(config.companyName, 15, 16);
     // }
@@ -177,41 +182,60 @@ export async function getPrintTransaction(
     doc.setFont("helvetica", "normal");
     if (movements) {
       let verticalPosition = 84;
-      let articlesPerPage = 20; 
-      let articlesOnCurrentPage = 0;   
-  
+      let articlesPerPage = 20;
+      let articlesOnCurrentPage = 0;
+
       for (let i = 0; i < movements.length; i++) {
         const movimiento = movements[i];
 
         if (articlesOnCurrentPage >= articlesPerPage) {
-          header(doc, transaction, config, token, optimizedImageBuffer);
+          header(doc, transaction, config, optimizedImageBuffer);
           footer(doc, transaction, qrDate);
           doc.addPage();
-          verticalPosition = 84; 
+          verticalPosition = 84;
           articlesOnCurrentPage = 0;
         }
-          doc.setFont("helvetica","normal");
-          doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(10);
 
-          doc.text(`${movimiento.amount}`, 9, verticalPosition);
-          doc.text(movimiento.code, 23, verticalPosition);
-          doc.text(movimiento.description, 63, verticalPosition);
-          doc.text(`$${movimiento.unitPrice.toFixed(2).replace('.', ',')}`, 127, verticalPosition);
-          doc.text(movimiento.taxes[0]?.percentage !== undefined ? `${movimiento.taxes[0]?.percentage}%` : "", 160, verticalPosition);
-          doc.text(`$${movimiento.salePrice.toFixed(2).replace('.', ',')}`, 182, verticalPosition);
-          
-          verticalPosition += 6;
-          articlesOnCurrentPage++;
+        doc.text(`${movimiento.amount}`, 9, verticalPosition);
+        doc.text(movimiento.code, 21, verticalPosition);
+        doc.text(movimiento.description, 61, verticalPosition);
+        doc.text(`$${movimiento.unitPrice.toFixed(2).replace('.', ',')}`, 135, verticalPosition);
+        doc.text(movimiento.taxes[0]?.percentage !== undefined ? `${movimiento.taxes[0]?.percentage}%` : "", 164, verticalPosition);
+        doc.text(`$${movimiento.salePrice.toFixed(2).replace('.', ',')}`, 182, verticalPosition);
+
+        verticalPosition += 6;
+        articlesOnCurrentPage++;
       }
-      header(doc, transaction, config, token, optimizedImageBuffer);
+      header(doc, transaction, config, optimizedImageBuffer);
       footer(doc, transaction, qrDate);
     }
-  
+
     doc.autoPrint();
-    doc.save('factu.pdf')
-    
-    const pdfBase64 = doc.output("datauristring");
-    return res.status(200).send({ pdfBase64 });
+    doc.save(`transaction-${transactionId}.pdf`)
+
+    const pdfPath = `transaction-${transactionId}.pdf`;
+
+    if (fs.existsSync(pdfPath)) {
+      res.contentType("application/pdf");
+      res.setHeader('Content-Disposition', `inline; filename=./transaction-${transactionId}.pdf`);
+
+      const fileStream = fs.createReadStream(pdfPath);
+      fileStream.pipe(res);
+
+      fileStream.on('end', () => {
+        fs.unlink(pdfPath, (err: any) => {
+          if (err) {
+            console.error(`Error al eliminar el archivo ${pdfPath}: ${err}`);
+          } else {
+            console.log(`Archivo ${pdfPath} eliminado con éxito.`);
+          }
+        });
+      })
+    } else {
+      res.status(404).send('PDF no encontrado');
+    }
   } catch (error) {
     console.log(error);
   }
