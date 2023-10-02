@@ -18,3 +18,17 @@ export async function getCompanyPictureData(picture: string, token: string) {
     }
 
 }
+
+export function getCompanyPictureFromGoogle(picture: string): Promise<string> {
+    return new Promise<string>((resolve, reject) => {
+      axios.get(picture, { responseType: 'arraybuffer' })
+        .then(response => {
+          const base64Image = Buffer.from(response.data, 'binary').toString('base64');
+          resolve('data:image/jpeg;base64,' + base64Image);
+        })
+        .catch(error => {
+          console.error('Error al obtener la imagen:', error);
+          reject(error);
+        });
+    });
+}
