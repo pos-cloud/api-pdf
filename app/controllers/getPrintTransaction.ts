@@ -3,19 +3,19 @@ import RequestWithUser from "../interfaces/requestWithUser.interface";
 import { getTransactionById } from "../services/transaction.service";
 import { getPrinters } from "../services/printers.services";
 import { getConfig } from "../services/config.services";
-const { jsPDF } = require("jspdf");
 import { formatDate } from "../utils/formateDate";
 import { padString } from "./../utils/padString";
-import { getCompanyPictureData } from "./../services/getPicture.service";
 import { getMovementsOfArticle } from "./../services/movements-of-articles.services";
 import Transaction from "./../models/transaction";
 import Config from "./../models/config";
 import { calculateQRAR } from "./../utils/calculateQRAR";
-import { transform } from "../utils/round-number";
-const sharp = require('sharp');
+import { transform, numberDecimal} from "../utils/format-numbers";
+import { getMovementsOfCash } from "../services/movements-of-cash.service";
+import MovementOfCash from "models/movement-of-cash";
 const fs = require('fs');
+const { jsPDF } = require("jspdf");
 
-const header = async (doc: any, transaction: Transaction, config: Config, imgLogo: string) => {
+const header = async (doc: any, transaction: Transaction, config: Config) => {
   doc.line(6, 6, 6, 48, "FD"); // Linea Vertical
   doc.line(205, 6, 205, 48, "FD"); // Linea Vertical
   doc.line(6, 48, 205, 48, "FD"); // Linea Horizontal
@@ -43,16 +43,16 @@ const header = async (doc: any, transaction: Transaction, config: Config, imgLog
 
   //colunas
   doc.line(20, 72, 20, 78, "FD"); // Linea Vertical
-  doc.line(60, 72, 60, 78, "FD"); // Linea Vertical
-  doc.line(130, 72, 130, 78, "FD"); // Linea Vertical
-  doc.line(160, 72, 160, 78, "FD"); // Linea Vertical
+  doc.line(53, 72, 53, 78, "FD"); // Linea Vertical
+  doc.line(136, 72, 136, 78, "FD"); // Linea Vertical
+  doc.line(168, 72, 168, 78, "FD"); // Linea Vertical
   doc.line(180, 72, 180, 78, "FD"); // Linea Vertical
 
   doc.text('Cant.', 9, 76)
   doc.text('Código', 24, 76)
-  doc.text('Descripción', 65, 76)
-  doc.text('Precio unitario', 132, 76)
-  doc.text('IVA', 163, 76)
+  doc.text('Descripción', 55, 76)
+  doc.text('Precio unitario', 140, 76)
+  doc.text('IVA', 171, 76)
   doc.text('Precio total', 182, 76)
 
   doc.setFont("helvetica", "bold");
@@ -81,13 +81,11 @@ const header = async (doc: any, transaction: Transaction, config: Config, imgLog
   doc.text(transaction.letter, 104.5, 14);
   doc.text(transaction.type.name, 130, 16);
 
-  if (typeof imgLogo !== "undefined") {
-    doc.addImage(imgLogo, 'JPEG', 15, 8, 45, 16)
-  } else {
-    doc.text(config.companyName, 15, 16);
-  }
-
-  doc.setFont("helvetica", "normal");
+  // if (typeof imgLogo !== "undefined") {
+  //   doc.addImage(imgLogo, 'JPEG', 15, 8, 45, 16)
+  // } else {
+  //   doc.text(config.companyName, 15, 16);
+  // }
 
   doc.setFontSize(8);
 
@@ -97,10 +95,11 @@ const header = async (doc: any, transaction: Transaction, config: Config, imgLog
         transaction.type.codes[i].code &&
         transaction.letter === transaction.type.codes[i].letter
       ) {
+        doc.setFont("helvetica", "bold");
         doc.setFontSize(8);
         doc.text(
-          'Cod:' + padString(transaction.type.codes[i].code.toString(), 2),
-          101.4,
+          'Cod.' + padString(transaction.type.codes[i].code.toString(), 2),
+          102.4,
           18,
         );
       }
@@ -108,29 +107,51 @@ const header = async (doc: any, transaction: Transaction, config: Config, imgLog
   }
 }
 
-async function footer(doc: any, transaction: Transaction, qrDate: string) {
-  doc.line(6, 208, 205, 208, "FD"); // Linea Horizontal
-  doc.line(6, 208, 6, 250, "FD"); // Linea Vertical
-  doc.line(205, 208, 205, 250, "FD"); // Linea Vertical
-  doc.line(6, 250, 205, 250, "FD"); // Linea Horizontal
+async function footer(doc: any, transaction: Transaction, qrDate: string, movementsOfCash: MovementOfCash) {
+  doc.line(6, 225, 205, 225, "FD"); // Linea Horizontal
+  doc.line(6, 225, 6, 290, "FD"); // Linea Vertical
+  doc.line(205, 225, 205, 290, "FD"); // Linea Vertical
+  doc.line(6, 290, 205, 290, "FD"); // Linea Horizontal
 
-  doc.addImage(qrDate, 'png', 10, 251, 43, 43);
+  doc.line(8, 227, 123, 227, "FD"); // Linea Horizontal
+  doc.line(8, 227, 8, 231, "FD"); // Linea Vertical
+  doc.line(123, 227, 123, 231, "FD"); // Linea Vertical
+  doc.line(8, 231, 123, 231, "FD"); // Linea Horizontal
+
+  doc.line(60, 227, 60, 231, "FD"); // Linea Vertical
+  doc.line(98, 227, 98, 231, "FD"); // Linea Vertical
+
 
   doc.setFontSize(10)
-  doc.text('Importe Neto Gravado:', 130, 215)
-  doc.text('Subtotal:', 130, 221)
-  doc.text('Descuento:', 130, 227)
-  doc.text('Total:', 130, 233)
-  doc.setFontSize(10)
+  doc.setFont("helvetica", "bold");
+  doc.text('Descripción', 10, 230)
+  doc.text('Detalle', 62, 230)
+  doc.text('Importe', 100, 230)
 
-  doc.text(`$${transaction.taxes[0].taxBase}` ?? '', 182, 215)
-  doc.text(`$${transaction.totalPrice}` ?? '', 182, 221)
-  doc.text(`$ (${transform(transaction.discountAmount / (1 + transaction.taxes[0].percentage / 100), 2)})` ?? '', 182, 227)
-  doc.text(`$${transaction.totalPrice} ` ?? '', 182, 233)
+  doc.setFont("helvetica", "normal");
+  doc.text('Forma de pago', 10, 235)
+  doc.text(movementsOfCash.type.name, 62, 235)
+  doc.text(`${numberDecimal(movementsOfCash.amountPaid)}`, 100, 235)
 
   doc.setFont("helvetica", "bold");
-  doc.text(`CAE N°: ${transaction?.CAE || ''}`, 140, 260)
-  doc.text(transaction.CAEExpirationDate !== undefined ? `Fecha de Vto. CAE: ${formatDate(transaction?.CAEExpirationDate)}` : 'Fecha de Vto. CAE:', 119.4, 266)
+  doc.text('Importe Neto Gravado:', 136, 235)
+  doc.text('Subtotal:', 136, 241)
+  doc.text('Descuento:', 136, 247)
+  doc.text('Total:', 136, 253)
+
+  doc.setFont("helvetica", "normal");
+  doc.text(`$${numberDecimal(transaction.taxes[0].taxBase)}` ?? '', 179, 235)
+  doc.text(`$${numberDecimal(transaction.totalPrice)}` ?? '', 179, 241)
+  doc.text(`$ (${transform(transaction.discountAmount / (1 + transaction.taxes[0].percentage / 100), 2)})` ?? '', 179, 247)
+  doc.text(`$${numberDecimal(transaction.totalPrice)} ` ?? '', 179, 253)
+
+
+  if (transaction.CAE && transaction.CAEExpirationDate) {
+    doc.addImage(qrDate, 'png', 9, 251, 35, 35);
+    doc.setFont("helvetica", "bold");
+    doc.text(`CAE N°: ${transaction?.CAE || ''}`, 47, 277)
+    doc.text(transaction.CAEExpirationDate !== undefined ? `Fecha de Vto. CAE: ${formatDate(transaction?.CAEExpirationDate)}` : 'Fecha de Vto. CAE:', 47, 282)
+  }
 }
 
 export async function getPrintTransaction(
@@ -161,7 +182,10 @@ export async function getPrintTransaction(
 
     const qrDate = await calculateQRAR(transaction, config)
 
-    const movements = await getMovementsOfArticle(transactionId, token)
+    const movementsOfArticles = await getMovementsOfArticle(transactionId, token)
+
+    const movementsOfCashes = await getMovementsOfCash(transactionId, token)
+    const movementsOfCash = movementsOfCashes[0]
 
     const pageWidth = printers.pageWidth;
     const pageHigh = printers.pageHigh;
@@ -170,9 +194,9 @@ export async function getPrintTransaction(
     const doc = new jsPDF(orientation, units, [pageWidth, pageHigh]);
 
     // if (config.companyPicture !== 'default.jpg') {
-    const imgLogo = await getCompanyPictureData(config.companyPicture, token)
-    const imageBuffer = Buffer.from(imgLogo, 'base64');
-    const optimizedImageBuffer = await sharp(imageBuffer).jpeg({ quality: 70 }).toBuffer();
+    // const imgLogo = await getCompanyPictureData(config.companyPicture, token)
+    // const imageBuffer = Buffer.from(imgLogo, 'base64');
+    // const optimizedImageBuffer = await sharp(imageBuffer).jpeg({ quality: 70 }).toBuffer();
     // } else {
     //   doc.text(config.companyName, 15, 16);
     // }
@@ -180,36 +204,41 @@ export async function getPrintTransaction(
 
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
-    if (movements) {
+    if (movementsOfArticles) {
       let verticalPosition = 84;
-      let articlesPerPage = 20;
+      let articlesPerPage = 36;
       let articlesOnCurrentPage = 0;
+      let currentPage = 1;
 
-      for (let i = 0; i < movements.length; i++) {
-        const movimiento = movements[i];
+      for (let i = 0; i < movementsOfArticles.length; i++) {
+        const movementsOfArticle = movementsOfArticles[i];
 
         if (articlesOnCurrentPage >= articlesPerPage) {
-          header(doc, transaction, config, optimizedImageBuffer);
-          footer(doc, transaction, qrDate);
-          doc.addPage();
-          verticalPosition = 84;
-          articlesOnCurrentPage = 0;
+          header(doc, transaction, config);
+    
+          if (i !== movementsOfArticles.length - 1) {
+            doc.addPage();
+            currentPage++; // Aumenta el número de página solo si no es la última
+            verticalPosition = 84;
+            articlesOnCurrentPage = 0;
+          }
         }
         doc.setFont("helvetica", "normal");
-        doc.setFontSize(10);
+        doc.setFontSize(8);
 
-        doc.text(`${movimiento.amount}`, 9, verticalPosition);
-        doc.text(movimiento.code, 21, verticalPosition);
-        doc.text(movimiento.description, 61, verticalPosition);
-        doc.text(`$${movimiento.unitPrice.toFixed(2).replace('.', ',')}`, 135, verticalPosition);
-        doc.text(movimiento.taxes[0]?.percentage !== undefined ? `${movimiento.taxes[0]?.percentage}%` : "", 164, verticalPosition);
-        doc.text(`$${movimiento.salePrice.toFixed(2).replace('.', ',')}`, 182, verticalPosition);
+        doc.text(`${movementsOfArticle.amount}`, 9, verticalPosition);
+        doc.text(movementsOfArticle.code, 21, verticalPosition);
+        doc.text(movementsOfArticle.description, 55, verticalPosition);
+        doc.text(`$${numberDecimal(movementsOfArticle.unitPrice)}`, 149, verticalPosition);
+        doc.text(movementsOfArticle.taxes[0]?.percentage !== undefined ? `${movementsOfArticle.taxes[0]?.percentage}%` : "", 171, verticalPosition);
+        doc.text(`$${numberDecimal(movementsOfArticle.salePrice)}`, 189, verticalPosition);
 
         verticalPosition += 6;
         articlesOnCurrentPage++;
       }
-      header(doc, transaction, config, optimizedImageBuffer);
-      footer(doc, transaction, qrDate);
+        header(doc, transaction, config);
+        footer(doc, transaction, qrDate, movementsOfCash);
+      
     }
 
     doc.autoPrint();

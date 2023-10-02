@@ -29,3 +29,11 @@ export function transform(value: any, numberOfDecimals: number = 2): any {
     }
 
 }
+
+export function numberDecimal(numberDecimal: number) {
+    return numberDecimal.toLocaleString('es-ES', {
+      style: 'decimal',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  }
