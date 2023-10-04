@@ -1,25 +1,19 @@
 import axios from "axios";
 import MovementOfCash from "models/movement-of-cash";
 
-export async function getMovementsOfCash(
-  token: string,
-  project: {},
-  match: {},
-  ): Promise<MovementOfCash[]>{
+export async function getMovementsOfCash(token: string, id: string): Promise<MovementOfCash[]>{
   try {
-
-    const URL = `${process.env.APIV1}v2/movements-of-cashes`;
+    let query = 'where="transaction":"' + id + '"'
+    const URL = `${process.env.APIV1}movements-of-cashes`;
     const headers = {
         'Authorization': token,
     };
 
     const params = {
-      project: project,
-      match: match,
+      query: query,
     }
-    const data = await axios.get(URL, { headers: headers, params: params })
+    const data = await axios.get(URL, { headers, params })
     const response: MovementOfCash[] = data.data.movementsOfCashes
-    console.log(response)
     return response
    } catch (error) {
     console.log(error)

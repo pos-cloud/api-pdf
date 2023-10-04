@@ -4,11 +4,11 @@ import { getTransactionById } from "../services/transaction.service";
 import { getPrinters } from "../services/printers.services";
 import { getConfig } from "../services/config.services";
 import { formatDate } from "../utils/formateDate";
-import { padString } from "./../utils/padString";
-import { getMovementsOfArticle } from "./../services/movements-of-articles.services";
-import Transaction from "./../models/transaction";
-import Config from "./../models/config";
-import { calculateQRAR } from "./../utils/calculateQRAR";
+import { padString } from "../utils/padString";
+import { getMovementsOfArticle } from "../services/movements-of-articles.services";
+import Transaction from "../models/transaction";
+import Config from "../models/config";
+import { calculateQRAR } from "../utils/calculateQRAR";
 import { transform, numberDecimal } from "../utils/format-numbers";
 import { getMovementsOfCash } from "../services/movements-of-cash.service";
 import MovementOfCash from "models/movement-of-cash";
@@ -100,57 +100,51 @@ const header = async (doc: any, transaction: Transaction, config: Config) => {
   }
 }
 
-async function footer(doc: any, transaction: Transaction, qrDate: string, movementsOfCash: any) {
+async function footer(doc: any, transaction: Transaction, qrDate: string, movementsOfCash: MovementOfCash[]) {
   doc.line(6, 225, 205, 225, "FD"); // Linea Horizontal
   doc.line(6, 225, 6, 290, "FD"); // Linea Vertical
   doc.line(205, 225, 205, 290, "FD"); // Linea Vertical
   doc.line(6, 290, 205, 290, "FD"); // Linea Horizontal
 
-  doc.line(8, 227, 123, 227, "FD"); // Linea Horizontal
+  doc.line(8, 227, 133, 227, "FD"); // Linea Horizontal
   doc.line(8, 227, 8, 231, "FD"); // Linea Vertical
-  doc.line(123, 227, 123, 231, "FD"); // Linea Vertical
-  doc.line(8, 231, 123, 231, "FD"); // Linea Horizontal
+  doc.line(133, 227, 133, 231, "FD"); // Linea Vertical
+  doc.line(8, 231, 133, 231, "FD"); // Linea Horizontal
 
-  doc.line(60, 227, 60, 231, "FD"); // Linea Vertical
-  doc.line(98, 227, 98, 231, "FD"); // Linea Vertical
+  doc.line(43, 227, 43, 231, "FD"); // Linea Vertical
+  doc.line(110, 227, 110, 231, "FD"); // Linea Vertical
 
 
   doc.setFontSize(10)
   doc.setFont("helvetica", "bold");
   doc.text('Forma de pago', 10, 230)
-  doc.text('Detalle', 62, 230)
-  doc.text('Importe', 100, 230)
+  doc.text('Detalle', 45, 230)
+  doc.text('Importe', 112, 230)
 
   doc.setFont("helvetica", "normal");
 
   let verticalPosition = 235;
-  console.log(movementsOfCash)
-  // for (let i = 0; i < movementsOfCash.length; i++) {
+  for (let i = 0; i < movementsOfCash.length; i++) {
 
-  //   doc.text(movementsOfCash[i].type.name, 10, verticalPosition)
-  //   doc.text(`$${numberDecimal(movementsOfCash[i].amountPaid)}`, 100, verticalPosition)
-  
-  //   if(movementsOfCash[i].observation){
-  //     doc.setFont('helvetica', 'bold');
-  //     doc.text('Observaciones: ', 47, 256);
-  //     doc.setFont('', 'normal');
-  //     verticalPosition += 4;
-  
-  //     movementsOfCash[i].observation.length > 0
-  //       ? doc.text(movementsOfCash[i].observation.slice(0, 45) + '-', 73, 256)
-  //       : '';
-  //     movementsOfCash[i].observation.length > 45
-  //       ? doc.text(movementsOfCash[i].observation.slice(45, 105) + '-', 49, (256 + 4))
-  //       : '';  
-  //   }
-  //  verticalPosition += 6;
-  // }
+    doc.text(movementsOfCash[i].type.name, 10, verticalPosition)
+    doc.text(`$${numberDecimal(movementsOfCash[i].amountPaid)}`, 112, verticalPosition)
+    movementsOfCash[i].observation.length > 0
+      ? doc.text(`${movementsOfCash[i].observation.slice(0, 37)}-`, 44, verticalPosition)
+      : '';
+    if (movementsOfCash[i].observation.length > 35) {
+      doc.text(`${movementsOfCash[i].observation.slice(37, 105)}-`, 44, (verticalPosition + 4)) || '';
+      verticalPosition += 8;
+    } else {
+      verticalPosition += 4;
+    }
+  }
 
+  doc.setFontSize(10)
   doc.setFont("helvetica", "bold");
-  doc.text('Importe Neto Gravado:', 136, 235)
-  doc.text('Subtotal:', 136, 241)
-  doc.text('Descuento:', 136, 247)
-  doc.text('Total:', 136, 253)
+  doc.text('Importe Neto Gravado:', 138, 235)
+  doc.text('Subtotal:', 138, 241)
+  doc.text('Descuento:', 138, 247)
+  doc.text('Total:', 138, 253)
 
   doc.setFont("helvetica", "normal");
   doc.text(`$${numberDecimal(transaction.taxes[0].taxBase)}` || '', 179, 235)
@@ -158,12 +152,23 @@ async function footer(doc: any, transaction: Transaction, qrDate: string, moveme
   doc.text(`$ (${transform(transaction.discountAmount / (1 + transaction.taxes[0].percentage / 100), 2)})` || '', 179, 247)
   doc.text(`$${numberDecimal(transaction.totalPrice)} ` || '', 179, 253)
 
-
   if (transaction.CAE && transaction.CAEExpirationDate) {
     doc.addImage(qrDate, 'png', 9, 251, 35, 35);
     doc.setFont("helvetica", "bold");
-    doc.text(`CAE N°: ${transaction?.CAE || ''}`, 47, 277)
-    doc.text(transaction.CAEExpirationDate !== undefined ? `Fecha de Vto. CAE: ${formatDate(transaction?.CAEExpirationDate)}` : 'Fecha de Vto. CAE:', 47, 282)
+    doc.text(`CAE N°: ${transaction?.CAE || ''}`, 45, 277)
+    doc.text(transaction.CAEExpirationDate !== undefined ? `Fecha de Vto. CAE: ${formatDate(transaction?.CAEExpirationDate)}` : 'Fecha de Vto. CAE:', 45, 282)
+  }
+
+  if (transaction.observation.length > 0) {
+    doc.text('Observaciones:', 45, 259)
+    doc.setFont("helvetica", "normal");
+    let row = 259;
+    transaction.observation.length > 0
+      ? doc.text(transaction.observation.slice(0, 45) + '-', 72, row)
+      : '';
+    transaction.observation.length > 45
+      ? doc.text(transaction.observation.slice(45, 105) + '-', 45, (row += 4))
+      : '';
   }
 }
 
@@ -197,37 +202,7 @@ export async function getPrintTransaction(
 
     const movementsOfArticles = await getMovementsOfArticle(transactionId, token)
 
-    let project = {};
-    // CAMPOS A TRAER
-
-    project = {
-        "_id": 1,
-        "number": 1,
-        "bank._id": 1,
-        "bank.name": 1,
-        "amountPaid": 1,
-        "operationType": 1,
-        "expirationDate": { $dateToString: { date: "$expirationDate", format: "%d/%m/%Y", timezone: "-03:00" } },
-        "transaction._id": 1,
-        "transaction.state": 1,
-        "transaction.type.name": 1,
-        "transaction.type.transactionMovement": 1,
-        "date": 1,
-        "statusCheck": 1,
-        "titular": 1,
-        "receiver": 1,
-        "quota": 1,
-        "type._id": { $toString: '$type._id' },
-        "type.name": 1,
-        "type.inputAndOuput": 1,
-        "deliveredBy": 1,
-        "CUIT": 1,
-        "observation": 1,
-        "transaction.operationType": 1
-    }
-  // project = JSON.parse(project);
-  
-    const movementsOfCash = await getMovementsOfCash(token, project, { _id: { $oid: transactionId }, operationType: { $ne: 'D' } })
+    const movementsOfCash = await getMovementsOfCash(token, transactionId)
 
     const pageWidth = printers.pageWidth;
     const pageHigh = printers.pageHigh;
@@ -256,7 +231,7 @@ export async function getPrintTransaction(
           }
         }
 
-        doc.setFont('', 'italic');
+        doc.setFont('helvetica', 'italic');
         doc.setFontSize(10);
 
         doc.text(movementsOfArticle.notes || "", 55, verticalPosition + 5);

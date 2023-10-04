@@ -1,6 +1,5 @@
 import Config from "../models/config";
 import Transaction from "../models/transaction";
-import { getBarcode } from "./getBarcode";
 import { getQRCode } from "./getQr";
 
 export async function calculateQRAR(transaction: Transaction, config: Config) {
