@@ -3,7 +3,7 @@ import { getArticleData } from "../services/article.services";
 import { getPrinters } from "../services/printers.services";
 import RequestWithUser from "../interfaces/requestWithUser.interface";
 import { getBarcode } from "../utils/getBarcode";
-import { getCompanyPictureData } from "../services/getPicture.service";
+import { getCompanyPictureData, getCompanyPictureFromGoogle } from "../services/getPicture.service";
 import { getConfig } from "../services/config.services";
 const { jsPDF } = require("jspdf");
 const fs = require('fs');
@@ -62,8 +62,9 @@ export async function getPrintArticle(
               break;
             case 'image':
               try {
-                const img = await getCompanyPictureData(eval(field.value), token);
-                doc.addImage(img, 'JPEG', field.positionStartX, field.positionStartY, field.positionEndX, field.positionEndY);
+                //const img = await getCompanyPictureData(eval(field.value), token);
+                const img = await getCompanyPictureFromGoogle(eval(field.value));
+                doc.addImage(img, 'png', field.positionStartX, field.positionStartY, field.positionEndX, field.positionEndY);
               } catch (error) {
                 console.log(error);
               }
