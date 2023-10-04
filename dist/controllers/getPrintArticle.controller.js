@@ -55,8 +55,9 @@ async function getPrintArticle(req, res) {
                             break;
                         case 'image':
                             try {
-                                const img = await (0, getPicture_service_1.getCompanyPictureData)(eval(field.value), token);
-                                doc.addImage(img, 'JPEG', field.positionStartX, field.positionStartY, field.positionEndX, field.positionEndY);
+                                //const img = await getCompanyPictureData(eval(field.value), token);
+                                const img = await (0, getPicture_service_1.getCompanyPictureFromGoogle)(eval(field.value));
+                                doc.addImage(img, 'png', field.positionStartX, field.positionStartY, field.positionEndX, field.positionEndY);
                             }
                             catch (error) {
                                 console.log(error);
