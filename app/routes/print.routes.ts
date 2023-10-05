@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import authMiddleware from '../middleware/auth.middleware';
-import { getPrintArticle } from '../controllers/getPrintArticle.controller';
-import { getPrintTransaction } from '../controllers/getPrintTransaction';
+import { getPrintArticle } from '../controllers/get-print-article.controller';
+import { getPrintTransaction } from '../controllers/get-print-transaction';
 import { getImage } from '../controllers/get-image.controller';
 
 class PrintRoutes {

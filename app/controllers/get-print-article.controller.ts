@@ -3,7 +3,7 @@ import { getArticleData } from "../services/article.services";
 import { getPrinters } from "../services/printers.services";
 import RequestWithUser from "../interfaces/requestWithUser.interface";
 import { getBarcode } from "../utils/getBarcode";
-import { getCompanyPictureData, getCompanyPictureFromGoogle } from "../services/getPicture.service";
+import { getCompanyPictureData, getCompanyPictureFromGoogle } from "../services/get-picture.service";
 import { getConfig } from "../services/config.services";
 const { jsPDF } = require("jspdf");
 const fs = require('fs');
