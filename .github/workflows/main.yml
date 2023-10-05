@@ -1,40 +1,39 @@
-name: Deploy to EvenNode
+name: Deploy Prod to DonWeb
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
+  workflow_dispatch:
 
 jobs:
-  Deploy:
-    runs-on: ubuntu-latest
+  build:
+    runs-on: prod
+
+    env:
+      TOKEN_SECRET: ${{ secrets.TOKEN_SECRET }}
+      APIV1: ${{ secrets.APIV1 }}
+      APIV2: ${{ secrets.APIV2 }}
+      PORT: ${{ secrets.PORT }}
 
     steps:
-      - name: Install SSH key
-        uses: shimataro/ssh-key-action@v2
-        with:
-          key: ${{ secrets.SSH_KEY }}
-          known_hosts: " "
-      - name: Add git.evennode.com to known_hosts
-        run: |
-          ssh-keyscan -H git.evennode.com > ~/.ssh/known_hosts
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: '14' 
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      - name: Install Dependencies
-        run: npm install
+      - name: Stop and remove existing container
+        run: docker rm -f api-print-poscloud || true
 
-      - name: Build TypeScript
-        run: npm run build
-        
-      - name: Deploy to evennode.com
+      - name: Build Docker image
+        run: docker build -t api-print-poscloud -f Dockerfile.prod .
+
+      - name: Run Docker container
         run: |
-          git remote add evennode ${{ secrets.EVENNODE_REPO_URL }}
-          git config --global user.email "${{ secrets.GIT_EMAIL }}"
-          git config --global user.name "${{ secrets.GIT_NAME }}"
-          git push evennode +main:main
+          docker run \
+            -e TOKEN_SECRET=$TOKEN_SECRET \
+            -e APIV1=$APIV1 \
+            -e APIV2=$APIV2 \
+            -e PORT=$PORT \
+            -v /home:/home \
+            --restart unless-stopped \
+            --net host \
+            --name api-print-poscloud \
+            -d -it -p 302:302 api-print-poscloud
