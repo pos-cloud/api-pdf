@@ -12,14 +12,15 @@ import { calculateQRAR } from "../utils/calculateQRAR";
 import { transform, numberDecimal } from "../utils/format-numbers";
 import { getMovementsOfCash } from "../services/movements-of-cash.service";
 import MovementOfCash from "models/movement-of-cash";
+import { getCompanyPictureFromGoogle } from "../services/get-picture.service";
 const fs = require('fs');
 const { jsPDF } = require("jspdf");
 
 const header = async (doc: any, transaction: Transaction, config: Config) => {
-  doc.line(6, 6, 6, 48, "FD"); // Linea Vertical
+  doc.line(4, 6, 4, 48, "FD"); // Linea Vertical
   doc.line(205, 6, 205, 48, "FD"); // Linea Vertical
-  doc.line(6, 48, 205, 48, "FD"); // Linea Horizontal
-  doc.line(6, 6, 205, 6, "FD"); // Linea Horizontal
+  doc.line(4, 48, 205, 48, "FD"); // Linea Horizontal
+  doc.line(4, 6, 205, 6, "FD"); // Linea Horizontal
 
   doc.line(107, 20, 107, 48); // Linea Vertical Medio
   doc.line(99, 20, 115, 20, "FD"); // Linea Horizontal Medio
@@ -27,33 +28,35 @@ const header = async (doc: any, transaction: Transaction, config: Config) => {
   doc.line(115, 6, 115, 20, "FD"); // Linea Vertical Medio
   doc.line(99, 6, 115, 6, "FD"); // Linea Horizontal Medio
 
-  doc.line(6, 51, 205, 51, "FD"); // Linea Horizontal
-  doc.line(6, 51, 6, 70, "FD"); // Linea Vertical
-  doc.line(205, 51, 205, 70, "FD"); // Linea Vertical
-  doc.line(6, 70, 205, 70, "FD"); // Linea Horizontal
+  doc.line(4, 51, 205, 51, "FD"); // Linea Horizontal
+  doc.line(4, 51, 4, 65, "FD"); // Linea Vertical
+  doc.line(205, 51, 205, 65, "FD"); // Linea Vertical
+  doc.line(4, 65, 205, 65, "FD"); // Linea Horizontal
 
   //CONTENIDO
-  doc.setFontSize(9)
-  doc.setFont("helvetica", "bold");
+  // doc.setFontSize(9)
+  // doc.setFont("helvetica", "bold");
 
-  doc.line(6, 72, 205, 72, "FD"); // Linea Horizontal
-  doc.line(6, 72, 6, 78, "FD"); // Linea Vertical
-  doc.line(205, 72, 205, 78, "FD"); // Linea Vertical
-  doc.line(6, 78, 205, 78, "FD"); // Linea Horizontal
+  // doc.line(4, 68, 205, 68, "FD"); // Linea Horizontal
+  // doc.line(4, 68, 4, 74, "FD"); // Linea Vertical
+  // doc.line(205, 68, 205, 74, "FD"); // Linea Vertical
+  // doc.line(4, 74, 205, 74, "FD"); // Linea Horizontal
 
-  //colunas
-  doc.line(20, 72, 20, 78, "FD"); // Linea Vertical
-  doc.line(53, 72, 53, 78, "FD"); // Linea Vertical
-  doc.line(136, 72, 136, 78, "FD"); // Linea Vertical
-  doc.line(168, 72, 168, 78, "FD"); // Linea Vertical
-  doc.line(180, 72, 180, 78, "FD"); // Linea Vertical
+  // //colunas
+  // doc.line(15, 68, 15, 74, "FD"); // Linea Vertical
+  // doc.line(41, 68, 41, 74, "FD"); // Linea Vertical
+  // doc.line(127, 68, 127, 74, "FD"); // Linea Vertical
+  // doc.line(151, 68, 151, 74, "FD"); // Linea Vertical
+  // doc.line(171, 68, 171, 74, "FD"); // Linea Vertical
+  // doc.line(182, 68, 182, 74, "FD"); // Linea Vertical
 
-  doc.text('Cant.', 9, 76)
-  doc.text('Código', 24, 76)
-  doc.text('Descripción', 55, 76)
-  doc.text('Precio unitario', 140, 76)
-  doc.text('IVA', 171, 76)
-  doc.text('Precio total', 182, 76)
+  // doc.text('Cant.', 6, 72)
+  // doc.text('Código', 17, 72)
+  // doc.text('Descripción', 42, 72)
+  // doc.text('Precio U.', 129, 72)
+  // doc.text('Desct.', 153, 72)
+  // doc.text('IVA', 173, 72)
+  // doc.text('Precio total', 184, 72)
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(9);
@@ -114,13 +117,13 @@ async function footer(doc: any, transaction: Transaction, qrDate: string, moveme
   doc.line(43, 227, 43, 231, "FD"); // Linea Vertical
   doc.line(110, 227, 110, 231, "FD"); // Linea Vertical
 
-
   doc.setFontSize(10)
   doc.setFont("helvetica", "bold");
   doc.text('Forma de pago', 10, 230)
   doc.text('Detalle', 45, 230)
   doc.text('Importe', 112, 230)
 
+if(movementsOfCash && movementsOfCash.length > 0){
   doc.setFont("helvetica", "normal");
 
   let verticalPosition = 235;
@@ -138,19 +141,22 @@ async function footer(doc: any, transaction: Transaction, qrDate: string, moveme
       verticalPosition += 4;
     }
   }
+}
 
   doc.setFontSize(10)
   doc.setFont("helvetica", "bold");
   doc.text('Importe Neto Gravado:', 138, 235)
   doc.text('Subtotal:', 138, 241)
   doc.text('Descuento:', 138, 247)
-  doc.text('Total:', 138, 253)
+  doc.text('IVA 21%', 138, 253)
+  doc.text('Total:', 138, 259)
 
   doc.setFont("helvetica", "normal");
-  doc.text(`$${numberDecimal(transaction.taxes[0].taxBase)}` || '', 179, 235)
-  doc.text(`$${numberDecimal(transaction.totalPrice)}` || '', 179, 241)
-  doc.text(`$ (${transform(transaction.discountAmount / (1 + transaction.taxes[0].percentage / 100), 2)})` || '', 179, 247)
-  doc.text(`$${numberDecimal(transaction.totalPrice)} ` || '', 179, 253)
+  doc.text(`$ ${numberDecimal(transaction.taxes[0].taxBase)}` || '', 179, 235)
+  doc.text(`$ ${numberDecimal(transaction.totalPrice)}` || '', 179, 241)
+  doc.text(`$ ${transform(transaction.discountAmount / (1 + transaction.taxes[0].percentage / 100), 2)}` || '', 179, 247)
+  doc.text(`$ ${numberDecimal(transaction.taxes[0].taxAmount)}`, 179, 253)
+  doc.text(`$ ${numberDecimal(transaction.totalPrice)} ` || '', 179, 259)
 
   if (transaction.CAE && transaction.CAEExpirationDate) {
     doc.addImage(qrDate, 'png', 9, 251, 35, 35);
@@ -164,7 +170,7 @@ async function footer(doc: any, transaction: Transaction, qrDate: string, moveme
     doc.setFont("helvetica", "normal");
     let row = 259;
     transaction.observation.length > 0
-      ? doc.text(transaction.observation.slice(0, 45) + '-', 72, row)
+      ? doc.text(transaction.observation.slice(0, 45) + '-', 68, row)
       : '';
     transaction.observation.length > 45
       ? doc.text(transaction.observation.slice(45, 105) + '-', 45, (row += 4))
@@ -202,7 +208,7 @@ export async function getPrintTransaction(
 
     const movementsOfArticles = await getMovementsOfArticle(transactionId, token)
 
-    const movementsOfCash = await getMovementsOfCash(token, transactionId)
+    const movementsOfCashs = await getMovementsOfCash(token, transactionId)
 
     const pageWidth = printers.pageWidth;
     const pageHigh = printers.pageHigh;
@@ -212,50 +218,150 @@ export async function getPrintTransaction(
 
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
-    if (movementsOfArticles) {
-      let verticalPosition = 84;
-      let articlesPerPage = 36;
-      let articlesOnCurrentPage = 0;
-      let currentPage = 1;
 
-      for (let i = 0; i < movementsOfArticles.length; i++) {
-        const movementsOfArticle = movementsOfArticles[i];
-        if (articlesOnCurrentPage >= articlesPerPage) {
-          header(doc, transaction, config);
+    if(config.companyPicture && config.companyPicture.length > 0){
+    const img = await getCompanyPictureFromGoogle(config.companyPicture);
+    doc.addImage(img, 'JPEG', 15, 8, 45, 16)
+    }else{
+      doc.text(config.companyPicture, 15, 16)
+    }
 
-          if (i !== movementsOfArticles.length - 1) {
-            doc.addPage();
-            currentPage++;
-            verticalPosition = 84;
-            articlesOnCurrentPage = 0;
+    if(transaction.type.name === 'Cobro'){
+     if(movementsOfCashs && movementsOfCashs.length > 0){
+      doc.setFontSize(9)
+      doc.setFont("helvetica", "bold");
+
+      doc.line(4, 68, 205, 68, "FD"); // Linea Horizontal
+      doc.line(4, 68, 4, 74, "FD"); // Linea Vertical
+      doc.line(205, 68, 205, 74, "FD"); // Linea Vertical
+      doc.line(4, 74, 205, 74, "FD"); // Linea Horizontal
+    
+      //colunas
+      doc.line(71, 68, 71, 74, "FD"); // Linea Vertical
+      doc.line(100, 68, 100, 74, "FD"); // Linea Vertical
+      doc.line(130, 68, 130, 74, "FD"); // Linea Vertical
+      doc.line(175, 68, 175, 74, "FD"); // Linea Vertical
+
+      doc.text('Detalle', 6, 72)
+      doc.text('Vencimiento', 73, 72)
+      doc.text('Número', 102, 72)
+      doc.text('Banco', 132, 72)
+      doc.text('Total', 177, 72)
+
+        let verticalPosition = 79;
+        let articlesPerPage = 37;
+        let articlesOnCurrentPage = 0;
+        let currentPage = 1;
+  
+        for (let i = 0; i < movementsOfCashs.length; i++) {
+          const movementsOfCash = movementsOfCashs[i];
+          if (articlesOnCurrentPage >= articlesPerPage) {
+            header(doc, transaction, config);
+  
+            if (i !== movementsOfCashs.length - 1) {
+              doc.addPage();
+              currentPage++;
+              verticalPosition = 84;
+              articlesOnCurrentPage = 0;
+            }
+          }
+  
+          doc.setFont('helvetica', 'italic');
+          doc.setFontSize(10);
+  
+          doc.text(movementsOfCash.observation || "", 8, verticalPosition + 5);
+  
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(7);
+  
+          doc.text(`${movementsOfCash.type.name}`, 6, verticalPosition);
+          doc.text(formatDate(movementsOfCash.expirationDate), 73, verticalPosition);
+          doc.text(movementsOfCash.number || '-', 102, verticalPosition);
+          doc.text(movementsOfCash.bank ? movementsOfCash.bank.name : '-', 132, verticalPosition);
+          doc.text(`${movementsOfCash.amountPaid}`, 177, verticalPosition);
+  
+          if (movementsOfCash.observation) {
+            verticalPosition += 9;
+            articlesOnCurrentPage++;
+          } else {
+            verticalPosition += 6;
+            articlesOnCurrentPage++;
           }
         }
+        header(doc, transaction, config);
+        // footer(doc, transaction, qrDate, movementsOfCashs);
+     }
+    }else{
+      if (movementsOfArticles && movementsOfArticles.length > 0) {
+          doc.setFontSize(9)
+          doc.setFont("helvetica", "bold");
 
-        doc.setFont('helvetica', 'italic');
-        doc.setFontSize(10);
+          doc.line(4, 68, 205, 68, "FD"); // Linea Horizontal
+          doc.line(4, 68, 4, 74, "FD"); // Linea Vertical
+          doc.line(205, 68, 205, 74, "FD"); // Linea Vertical
+          doc.line(4, 74, 205, 74, "FD"); // Linea Horizontal
 
-        doc.text(movementsOfArticle.notes || "", 55, verticalPosition + 5);
+          //colunas
+          doc.line(15, 68, 15, 74, "FD"); // Linea Vertical
+          doc.line(41, 68, 41, 74, "FD"); // Linea Vertical
+          doc.line(127, 68, 127, 74, "FD"); // Linea Vertical
+          doc.line(151, 68, 151, 74, "FD"); // Linea Vertical
+          doc.line(171, 68, 171, 74, "FD"); // Linea Vertical
+          doc.line(182, 68, 182, 74, "FD"); // Linea Vertical
 
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(8);
+          doc.text('Cant.', 6, 72)
+          doc.text('Código', 17, 72)
+          doc.text('Descripción', 42, 72)
+          doc.text('Precio U.', 129, 72)
+          doc.text('Desct.', 153, 72)
+          doc.text('IVA', 173, 72)
+          doc.text('Precio total', 184, 72)
 
-        doc.text(`${movementsOfArticle.amount}`, 9, verticalPosition);
-        doc.text(movementsOfArticle.code, 21, verticalPosition);
-        doc.text(movementsOfArticle.description, 55, verticalPosition);
-        doc.text(`$${numberDecimal(movementsOfArticle.unitPrice)}`, 149, verticalPosition);
-        doc.text(movementsOfArticle.taxes[0]?.percentage !== undefined ? `${movementsOfArticle.taxes[0]?.percentage}%` : "", 171, verticalPosition);
-        doc.text(`$${numberDecimal(movementsOfArticle.salePrice)}`, 189, verticalPosition);
-
-        if (movementsOfArticle.notes) {
-          verticalPosition += 9;
-          articlesOnCurrentPage++;
-        } else {
-          verticalPosition += 6;
-          articlesOnCurrentPage++;
+        let verticalPosition = 79;
+        let articlesPerPage = 37;
+        let articlesOnCurrentPage = 0;
+        let currentPage = 1;
+  
+        for (let i = 0; i < movementsOfArticles.length; i++) {
+          const movementsOfArticle = movementsOfArticles[i];
+          if (articlesOnCurrentPage >= articlesPerPage) {
+            header(doc, transaction, config);
+  
+            if (i !== movementsOfArticles.length - 1) {
+              doc.addPage();
+              currentPage++;
+              verticalPosition = 84;
+              articlesOnCurrentPage = 0;
+            }
+          }
+  
+          doc.setFont('helvetica', 'italic');
+          doc.setFontSize(10);
+  
+          doc.text(movementsOfArticle.notes || "", 44, verticalPosition + 5);
+  
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(7);
+  
+          doc.text(`${movementsOfArticle.amount}`, 6, verticalPosition);
+          doc.text(movementsOfArticle.code, 17, verticalPosition);
+          doc.text(movementsOfArticle.description, 42, verticalPosition);
+          doc.text(`$ ${numberDecimal(movementsOfArticle.unitPrice)}`, 129, verticalPosition);
+          doc.text(movementsOfArticle.taxes[0]?.percentage !== undefined ? `${movementsOfArticle.taxes[0]?.percentage}%` : "", 173, verticalPosition);
+          doc.text(`${movementsOfArticle.discountRate}%`, 153, verticalPosition)
+          doc.text(`$ ${numberDecimal(movementsOfArticle.salePrice)}`, 184, verticalPosition);
+  
+          if (movementsOfArticle.notes) {
+            verticalPosition += 9;
+            articlesOnCurrentPage++;
+          } else {
+            verticalPosition += 6;
+            articlesOnCurrentPage++;
+          }
         }
+        header(doc, transaction, config);
+        footer(doc, transaction, qrDate, movementsOfCashs);
       }
-      header(doc, transaction, config);
-      footer(doc, transaction, qrDate, movementsOfCash);
     }
 
     doc.autoPrint();

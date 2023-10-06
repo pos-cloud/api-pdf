@@ -1,3 +1,4 @@
+import Bank from "./bank"
 import Model from "./model"
 import PaymentMethod from "./payment-method"
 import Transaction from "./transaction"
@@ -26,7 +27,7 @@ export default interface MovementOfCash extends Model {
     transaction: Transaction
     receiver?: string
     number?: string
-    // bank?: Bank
+    bank: Bank
     titular?: string
     CUIT?: string
     deliveredBy?: string
