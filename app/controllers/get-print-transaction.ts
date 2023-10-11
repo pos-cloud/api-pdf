@@ -17,7 +17,7 @@ import MovementOfArticle from "../models/movements-of-articles";
 const fs = require('fs');
 const { jsPDF } = require("jspdf");
 
-const header = async (doc: any, transaction: Transaction, config: Config, movementsOfArticles: MovementOfArticle[]) => {
+async function header(doc: any, transaction: Transaction, config: Config, movementsOfArticles: MovementOfArticle[]){
   doc.line(4, 6, 4, 48, "FD"); // Linea Vertical
   doc.line(205, 6, 205, 48, "FD"); // Linea Vertical
   doc.line(4, 48, 205, 48, "FD"); // Linea Horizontal
@@ -166,28 +166,43 @@ async function footer(doc: any, transaction: Transaction, qrDate: string, moveme
 
     doc.setFontSize(10)
     doc.setFont("helvetica", "bold");
-    doc.text('Importe Neto Gravado:', 138, 235)
-    doc.text('Subtotal:', 138, 241)
-    doc.text('Descuento:', 138, 247)
-    doc.text('IVA 21%', 138, 253)
-    doc.text('Total:', 138, 259)
+    doc.text('Subtotal:', 138, 235)
+    doc.text('Descuento:', 138, 241)
+    doc.text('Importe Neto Gravado:', 138, 247)
 
-  if(transaction){
-    doc.setFont("helvetica", "normal");
-    doc.text(`$ ${transaction.taxes.taxBase ? numberDecimal(transaction.taxes.taxBase) : ''}`, 179, 235)
-    doc.text(`$ ${numberDecimal(transaction.totalPrice)}` || '', 179, 241)
-    doc.text(`$ ${transform(transaction.discountAmount / (1 + transaction.taxes.percentage / 100), 2)}` || '', 179, 247)
-    doc.text(`$ ${transaction.taxes.taxAmount ? numberDecimal(transaction.taxes.taxAmount) : ''}`, 179, 253)
-    doc.text(`$ ${transaction.totalPrice ? numberDecimal(transaction.totalPrice) : ''} ` , 179, 259)
-  }
+    if (transaction) {
+      let texBase = 0
+      let percentage = 0
+      let verticalPosition = 254;
 
-  if (transaction.CAE && transaction.CAEExpirationDate) {
-    doc.addImage(qrDate, 'png', 9, 251, 35, 35);
-    doc.setFont("helvetica", "bold");
-    doc.text(`CAE N°: ${transaction?.CAE || ''}`, 45, 277)
-    doc.text(transaction.CAEExpirationDate !== undefined ? `Fecha de Vto. CAE: ${formatDate(transaction?.CAEExpirationDate)}` : 'Fecha de Vto. CAE:', 45, 282)
-  }
-  
+      for (let i = 0; i < transaction.taxes.length; i++) {
+        texBase += transaction.taxes[i].taxBase
+        percentage += (1 + transaction.taxes[i].percentage / 100)
+
+        doc.setFont("helvetica", "normal");
+        doc.text(`$ ${transaction.taxes[i].taxAmount ? numberDecimal(transaction.taxes[i].taxAmount) : ''}`, 179, verticalPosition)
+        doc.setFont("helvetica", "bold");
+        doc.text(transaction.taxes[i].tax.name, 138, verticalPosition)
+        verticalPosition += 7;
+      }
+      verticalPosition += 0, 5;
+
+      doc.setFont("helvetica", "bold");
+      doc.text('Total:', 138, verticalPosition);
+      doc.setFont("helvetica", "normal");
+      doc.text(`$ ${transaction.totalPrice ? numberDecimal(transaction.totalPrice) : ''} `, 179, verticalPosition)
+      doc.text(`$ ${transaction.totalPrice ? numberDecimal(transaction.totalPrice) : ''} `, 179, 235)
+      doc.text(`$ ${texBase ? numberDecimal(texBase) : ''}`, 179, 247)
+      doc.text(`$ ${transform(transaction.discountAmount / percentage, 2)}` || '', 179, 241)
+    }
+
+    if (transaction.CAE && transaction.CAEExpirationDate) {
+      doc.addImage(qrDate, 'png', 9, 251, 35, 35);
+      doc.setFont("helvetica", "bold");
+      doc.text(`CAE N°: ${transaction?.CAE || ''}`, 45, 277)
+      doc.text(transaction.CAEExpirationDate !== undefined ? `Fecha de Vto. CAE: ${formatDate(transaction?.CAEExpirationDate)}` : 'Fecha de Vto. CAE:', 45, 282)
+    }
+
   } else {
     doc.setFontSize(10)
     doc.setFont("helvetica", "bold");
@@ -370,5 +385,6 @@ export async function getPrintTransaction(
     }
   } catch (error) {
     console.log(error);
+    res.status(500).json({ message: "Internal server error", error: error });
   }
 }
