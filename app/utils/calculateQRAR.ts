@@ -1,6 +1,5 @@
 import Config from "../models/config";
 import Transaction from "../models/transaction";
-import { getBarcode } from "./getBarcode";
 import { getQRCode } from "./getQr";
 
 export async function calculateQRAR(transaction: Transaction, config: Config) {
@@ -35,7 +34,6 @@ export async function calculateQRAR(transaction: Transaction, config: Config) {
 
    url += objJsonB64; 
  
-  //  const response = await getQRCode(url)
-  const response = getBarcode('qr',url);
+  const response = await getQRCode(url)
    return response 
   }

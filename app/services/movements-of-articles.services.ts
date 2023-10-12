@@ -3,7 +3,6 @@ import MovementOfArticle from "models/movements-of-articles";
 
 export async function getMovementsOfArticle(id: string, token: string): Promise<MovementOfArticle[]>{
   try {
-     
     let query = 'where="transaction":"' + id + '"';
     const URL = `${process.env.APIV1}movements-of-articles`;
     const headers = {
@@ -18,6 +17,6 @@ export async function getMovementsOfArticle(id: string, token: string): Promise<
     const response: MovementOfArticle[] = data.data.movementsOfArticles
     return response
    } catch (error) {
-    console.log(error)
+    console.log(error.response.statusText)
    }
 }

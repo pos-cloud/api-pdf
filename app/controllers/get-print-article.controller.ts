@@ -3,7 +3,7 @@ import { getArticleData } from "../services/article.services";
 import { getPrinters } from "../services/printers.services";
 import RequestWithUser from "../interfaces/requestWithUser.interface";
 import { getBarcode } from "../utils/getBarcode";
-import { getCompanyPictureData, getCompanyPictureFromGoogle } from "../services/getPicture.service";
+import { getCompanyPictureData, getCompanyPictureFromGoogle } from "../services/get-picture.service";
 import { getConfig } from "../services/config.services";
 const { jsPDF } = require("jspdf");
 const fs = require('fs');
@@ -40,11 +40,9 @@ export async function getPrintArticle(
     const units = 'mm';
     const orientation = printer.orientation;
     const doc = new jsPDF(orientation, units, [pageWidth, pageHigh]);
-
     if (quantity && parseInt(quantity) >= 1) {
       for (let index = 0; index < parseInt(quantity); index++) {
         if (index > 0) {
-          console.log(index)
           doc.addPage();
         }
         for (const field of printer.fields) {

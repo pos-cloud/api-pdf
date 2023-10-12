@@ -1,6 +1,6 @@
 import { Response } from "express";
 import RequestWithUser from "../interfaces/requestWithUser.interface";
-import { getCompanyPictureFromGoogle } from "../services/getPicture.service";
+import { getCompanyPictureFromGoogle } from "../services/get-picture.service";
 
 export async function getImage(
     req: RequestWithUser,
