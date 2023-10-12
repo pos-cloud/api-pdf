@@ -82,9 +82,9 @@ async function header(doc: any, transaction: Transaction, config: Config, moveme
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(9);
-  doc.text(`Razón Social:  ${config.companyName}`, 9, 28);
-  doc.text(`Domicilio Comercial:   ${config.companyAddress}`, 9, 35);
-  doc.text(`Condición de IVA:   ${config.companyVatCondition?.description || ""}`, 9, 42);
+  doc.text(`Razón Social:  ${config.companyName}`, 9, 38);
+  doc.text(`Domicilio Comercial:   ${config.companyAddress}`, 9, 42);
+  doc.text(`Condición de IVA:   ${config.companyVatCondition?.description || ""}`, 9, 46);
   doc.text(`Punto de Venta: ${padString(transaction.origin, 4)}`, 120, 26);
   doc.text(`Comp. Nro: ${padString(transaction.number, 10)}`, 165, 26);
   doc.text(`Fecha de Emición: ${formatDate(transaction.startDate)} `, 120, 30);
@@ -97,8 +97,8 @@ async function header(doc: any, transaction: Transaction, config: Config, moveme
   doc.setFontSize(8.9);
   doc.text(`C.U.I.T: ${transaction.company?.CUIT || ""}`, 9, 57);
   doc.text(`Condición de IVA: ${transaction.VatCondition?.description || "Consumidor Final"}`, 9, 62);
-  doc.text(`Razón Social: ${transaction.company?.name || ""}`, 100, 57);
-  doc.text(`Domicilio Comercial:  ${transaction.company?.address || ""}`, 100, 62);
+  doc.text(`Razón Social: ${transaction.company?.name || ""}`, 87, 57);
+  doc.text(`Domicilio Comercial:  ${transaction.company?.address || ""}`, 87, 62);
 
   doc.setFontSize(20);
 
@@ -126,12 +126,14 @@ async function header(doc: any, transaction: Transaction, config: Config, moveme
 }
 
 async function footer(doc: any, transaction: Transaction, qrDate: string, movementsOfCash: MovementOfCash[], movementsOfArticles: MovementOfArticle[]) {
-  doc.line(6, 225, 205, 225, "FD"); // Linea Horizontal
-  doc.line(6, 225, 6, 290, "FD"); // Linea Vertical
-  doc.line(205, 225, 205, 290, "FD"); // Linea Vertical
-  doc.line(6, 290, 205, 290, "FD"); // Linea Horizontal
 
   if (movementsOfCash && movementsOfArticles) {
+    doc.line(6, 225, 205, 225, "FD"); // Linea Horizontal
+    doc.line(6, 225, 6, 290, "FD"); // Linea Vertical
+    doc.line(205, 225, 205, 290, "FD"); // Linea Vertical
+    doc.line(6, 290, 205, 290, "FD"); // Linea Horizontal
+  
+
     doc.line(8, 227, 133, 227, "FD"); // Linea Horizontal
     doc.line(8, 227, 8, 231, "FD"); // Linea Vertical
     doc.line(133, 227, 133, 231, "FD"); // Linea Vertical
@@ -168,7 +170,7 @@ async function footer(doc: any, transaction: Transaction, qrDate: string, moveme
     doc.setFont("helvetica", "bold");
     doc.text('Subtotal:', 138, 235)
     doc.text('Descuento:', 138, 241)
-    doc.text('Importe Neto Gravado:', 138, 247)
+    doc.text('Neto Gravado:', 138, 247)
 
     if (transaction) {
       let texBase = 0
@@ -191,9 +193,9 @@ async function footer(doc: any, transaction: Transaction, qrDate: string, moveme
       doc.text('Total:', 138, verticalPosition);
       doc.setFont("helvetica", "normal");
       doc.text(`$ ${transaction.totalPrice ? numberDecimal(transaction.totalPrice) : ''} `, 179, verticalPosition)
-      doc.text(`$ ${transaction.totalPrice ? numberDecimal(transaction.totalPrice) : ''} `, 179, 235)
+      doc.text(`${transaction.totalPrice ? numberDecimal(transaction.totalPrice) : ''} `, 179, 235)
       doc.text(`$ ${texBase ? numberDecimal(texBase) : ''}`, 179, 247)
-      doc.text(`$ ${transform(transaction.discountAmount / percentage, 2)}` || '', 179, 241)
+      doc.text(`${transaction.discountAmount / percentage > 0 ? `$ ${transform(transaction.discountAmount / percentage, 2)}` : ''}`, 179, 241)
     }
 
     if (transaction.CAE && transaction.CAEExpirationDate) {
@@ -204,17 +206,22 @@ async function footer(doc: any, transaction: Transaction, qrDate: string, moveme
     }
 
   } else {
+    doc.line(6, 250, 205, 250, "FD"); // Linea Horizontal
+    doc.line(6, 250, 6, 290, "FD"); // Linea Vertical
+    doc.line(205, 250, 205, 290, "FD"); // Linea Vertical
+    doc.line(6, 290, 205, 290, "FD"); // Linea Horizontal
+  
     doc.setFontSize(10)
     doc.setFont("helvetica", "bold");
-    doc.text('Total:', 138, 235)
+    doc.text('Total:', 138, 257)
     doc.setFont("helvetica", "normal");
-    doc.text(`$ ${numberDecimal(transaction.totalPrice)} ` || '', 179, 235)
+    doc.text(`$ ${numberDecimal(transaction.totalPrice)} ` || '', 179, 257)
   }
   if (transaction.observation.length > 0) {
     doc.setFont("helvetica", "bold");
-    doc.text('Observaciones:', 9, 259)
+    doc.text('Observaciones:', 9, 272)
     doc.setFont("helvetica", "normal");
-    let row = 259;
+    let row = 272;
     transaction.observation.length > 0
       ? doc.text(transaction.observation.slice(0, 45) + '-', 37, row)
       : '';
@@ -266,7 +273,7 @@ export async function getPrintTransaction(
 
     if (config.companyPicture && config.companyPicture.length > 0) {
       const img = await getCompanyPictureFromGoogle(config.companyPicture);
-      doc.addImage(img, 'JPEG', 15, 8, 45, 16)
+      doc.addImage(img, 'JPEG', 15, 8, 60, 26)
     } else {
       doc.text(config.companyPicture, 15, 16)
     }
@@ -334,18 +341,18 @@ export async function getPrintTransaction(
         }
 
         doc.setFont('helvetica', 'italic');
-        doc.setFontSize(10);
+        doc.setFontSize(7);
 
         doc.text(movementsOfCash.observation || "", 8, verticalPosition + 5);
 
         doc.setFont("helvetica", "normal");
-        doc.setFontSize(7);
+        doc.setFontSize(9);
 
         doc.text(`${movementsOfCash.type.name}`, 6, verticalPosition);
         doc.text(formatDate(movementsOfCash.expirationDate), 73, verticalPosition);
         doc.text(movementsOfCash.number || '-', 102, verticalPosition);
         doc.text(movementsOfCash.bank ? movementsOfCash.bank.name : '-', 132, verticalPosition);
-        doc.text(`${movementsOfCash.amountPaid}`, 177, verticalPosition);
+        doc.text(`$ ${movementsOfCash.amountPaid}`, 177, verticalPosition);
 
         if (movementsOfCash.observation) {
           verticalPosition += 9;
