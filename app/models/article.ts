@@ -30,7 +30,9 @@ export default interface Article extends Model {
   markupPrice: number
   salePrice: number
   //currency: Currency
-  //make: Make
+  make:{
+    description: string
+  }
   //category: Category
   deposits: {
    // deposit: Deposit
