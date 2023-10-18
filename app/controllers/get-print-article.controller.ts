@@ -5,14 +5,13 @@ import RequestWithUser from "../interfaces/requestWithUser.interface";
 import { getBarcode } from "../utils/getBarcode";
 import {getCompanyPictureFromGoogle } from "../services/get-picture.services";
 import { getConfig } from "../services/config.services";
-import { getItem } from "../services/articleV2.services";
 const { jsPDF } = require("jspdf");
 const fs = require('fs');
 
-export async function getPrintArticle(
+ export async function getPrintArticle(
   req: RequestWithUser,
   res: Response
-) {
+ ) {
   const token = req.headers.authorization
   const articleId: string = req.query.articleId as string;
   const quantity: string = req.query.quantity as string;
@@ -26,12 +25,11 @@ export async function getPrintArticle(
     if(!quantity){
       return res.status(404).json({ message: "no quantity found" });
     }
-    const article = await getArticleData(articleId, token);
+    const articles = await getArticleData(articleId, token);
+    const article = articles[0]
     if (!article) {
       return res.status(404).json({ message: "Article not found" });
     }
-
-    const items = await getItem(token)
     
     const printer = await getPrinters(token, "Etiqueta");
 
@@ -50,7 +48,6 @@ export async function getPrintArticle(
         if (index > 0) {
           doc.addPage();
         }
-        if(printer.fields){
           for (const field of printer.fields) {
             switch (field.type) {
               case 'label':
@@ -58,7 +55,7 @@ export async function getPrintArticle(
                   doc.setFont(field.font, field.fontType);
                 }
                 doc.setFontSize(field.fontSize);
-                doc.text(field.positionStartX, field.positionStartY, field.value);
+                doc.text(field.positionStartX, field.positionStartY, eval(field.value));
                 break;
               case 'line':
                 doc.setLineWidth(field.fontSize);
@@ -66,7 +63,6 @@ export async function getPrintArticle(
                 break;
               case 'image':
                 try {
-                  //const img = await getCompanyPictureData(eval(field.value), token);
                   const img = await getCompanyPictureFromGoogle(eval(field.value));
                   doc.addImage(img, 'png', field.positionStartX, field.positionStartY, field.positionEndX, field.positionEndY);
                 } catch (error) {
@@ -100,59 +96,7 @@ export async function getPrintArticle(
                 break;
             }
           }
-        }else{
-          let x = 15
-          let y = 10
-          //set counter
-          let count = 1
-          //set date
-          var currentdate = new Date(); 
-          // var datetime = currentdate.getDate() + "/"
-          //           + (currentdate.getMonth()+1)  + "/" 
-          //           + currentdate.getFullYear() + " "
-          //           + currentdate.getHours() + ":"  
-          //           + currentdate.getMinutes() 
-      
-          //print each article
-          for (let articleItem of items){
-            //prepare label
-            doc.rect(x, y, 60, 30.5);
-            doc.setFont('', 'bold');
-            doc.setFontSize(30);
-            doc.text(x+5, y+13, "$"+articleItem.salePrice);
-            doc.setFont('', 'normal');
-            doc.setFontSize(9);
-            doc.setFont('', 'italic');
-            doc.text(x+1, y+23, articleItem.description);
-            doc.text(x+1, y+26, articleItem.make.description);
-            doc.setFontSize(7);
-            doc.text(x+1, y+29, articleItem.barcode);
-            doc.setFontSize(9);
-            doc.setFont('', 'normal');
-            doc.setFont('', 'bold');
-            doc.text(x+20, y+29, config.companyFantasyName);
-            doc.setFont('', 'normal');
-            doc.setFontSize(7);
-            // doc.text(x+44, y+29, datetime);
-      
-            //validate position
-            if(x >= 110){
-              x=15
-              y+=30.5
-            }else{
-              x+=60
-            }
-            if(count === 27){
-              doc.addPage()
-              x = 15
-              y = 10
-              count = 1
-            }else{
-              count ++
-            }
-          }
         }
-      }
     }
 
     doc.autoPrint();
@@ -183,4 +127,4 @@ export async function getPrintArticle(
     console.log(error);
     res.status(500).json({ message: "Internal server error", error: error });
   }
-}
+ }

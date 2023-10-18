@@ -2,24 +2,28 @@ import { getConfig } from "../services/config.services";
 import RequestWithUser from "../interfaces/requestWithUser.interface";
 import { Response } from "express";
 import { getPrinters } from "../services/printers.services";
-import { getItem } from "../services/articleV2.services";
+import { getArticleData } from "../services/article.services";
 const { jsPDF } = require("jspdf");
 const fs = require('fs');
 
-export async function getListArticles(
+export async function getPrintArticles(
     req: RequestWithUser,
     res: Response) {
       const token = req.headers.authorization
-    
       try {
+        const id = req.body
+        if(!id){
+          return res.status(404).json({ message: "id not found" });
+        }
+
         const configs = await getConfig(token);
         const config = configs[0]
-      
-       const items = await getItem(token)
         if (!config) {
           return res.status(404).json({ message: "Config not found" });
         }
        
+        const articles = await getArticleData(id, token)
+
         const printer = await getPrinters(token, "Etiqueta");
     
         if (!printer) {
@@ -38,32 +42,36 @@ export async function getListArticles(
       let count = 1
       //set date
       var currentdate = new Date(); 
-      // var datetime = currentdate.getDate() + "/"
-      //           + (currentdate.getMonth()+1)  + "/" 
-      //           + currentdate.getFullYear() + " "
-      //           + currentdate.getHours() + ":"  
-      //           + currentdate.getMinutes() 
+      var datetime = currentdate.getDate() + "/"
+                + (currentdate.getMonth()+1)  + "/" 
+                + currentdate.getFullYear() + " "
+                + currentdate.getHours() + ":"  
+                + currentdate.getMinutes() 
 
-      for (let articleItem of items){
+      for (let articleItem of articles){
         doc.rect(x, y, 60, 30.5);
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(30);
-        doc.text(x+5, y+13, "$"+articleItem.salePrice);
+        doc.text(x+5, y+12, `$${articleItem.salePrice}`);
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(9);
         doc.setFont('helvetica', 'italic');
-        doc.text(x+1, y+23, `${articleItem.description}`);
+        articleItem.description.length > 0
+        ? doc.text(articleItem.description.slice(0, 28) + '-', x+1, y+20)
+        : '';
+        articleItem.description.length > 28
+        ? doc.text(articleItem.description.slice(28, 105) + '-', x+1, (y+23))
+        : '';
         doc.text(x+1, y+26, articleItem.make.description);
         doc.setFontSize(7);
-        doc.text(x+1, y+29, `${articleItem.barcode}`);
+        doc.text(x+1, y+29, articleItem.barcode);
         doc.setFontSize(9);
         doc.setFont('helvetica', 'normal');
         doc.setFont('helvetica', 'bold');
-        doc.text(x+20, y+29, config.companyFantasyName);
+        // doc.text(x+20, y+29, config.companyFantasyName);
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(7);
-        // doc.text(x+44, y+29, datetime);
-
+        doc.text(x+44, y+29, datetime);
         //validate position
         if(x >= 110){
           x=15
