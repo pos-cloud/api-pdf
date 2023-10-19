@@ -3,6 +3,7 @@ import RequestWithUser from "../interfaces/requestWithUser.interface";
 import { Response } from "express";
 import { getPrinters } from "../services/printers.services";
 import { getArticleData } from "../services/article.services";
+import { transform } from "../utils/format-numbers";
 const { jsPDF } = require("jspdf");
 const fs = require('fs');
 
@@ -23,6 +24,9 @@ export async function getPrintArticles(
         }
        
         const articles = await getArticleData(id, token)
+        if(!articles){
+          return res.status(404).json({ message: "Articles not found" });
+        }
 
         const printer = await getPrinters(token, "Etiqueta");
     
@@ -52,26 +56,27 @@ export async function getPrintArticles(
         doc.rect(x, y, 60, 30.5);
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(30);
-        doc.text(x+5, y+12, `$${articleItem.salePrice}`);
+        doc.text(x+5, y+12, `$${transform(articleItem.salePrice)}`);
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(9);
         doc.setFont('helvetica', 'italic');
         articleItem.description.length > 0
         ? doc.text(articleItem.description.slice(0, 28) + '-', x+1, y+20)
-        : '';
+        : '' 
         articleItem.description.length > 28
         ? doc.text(articleItem.description.slice(28, 105) + '-', x+1, (y+23))
         : '';
-        doc.text(x+1, y+26, articleItem.make.description);
+        
+        doc.text(x+1, y+26, articleItem.make ? articleItem.make.description : '');
         doc.setFontSize(7);
-        doc.text(x+1, y+29, articleItem.barcode);
+        // doc.text(x+1, y+29, articleItem.barcode);
         doc.setFontSize(9);
         doc.setFont('helvetica', 'normal');
         doc.setFont('helvetica', 'bold');
-        // doc.text(x+20, y+29, config.companyFantasyName);
+        doc.text(x+1, y+29, config.companyFantasyName);
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(7);
-        doc.text(x+44, y+29, datetime);
+        doc.text(x+40, y+29, datetime);
         //validate position
         if(x >= 110){
           x=15
