@@ -1,5 +1,6 @@
 import axios from "axios";
-import Article from "models/article";
+import Article from "../models/article";
+
 
 export async function getArticleData(articleIds: string, token: string): Promise <Article[]>{
     try {
@@ -22,3 +23,4 @@ export async function getArticleData(articleIds: string, token: string): Promise
         console.log(error)
     }
 }
+

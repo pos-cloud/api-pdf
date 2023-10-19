@@ -1,7 +1,6 @@
 import { getConfig } from "../services/config.services";
 import RequestWithUser from "../interfaces/requestWithUser.interface";
 import { Response } from "express";
-import { getPrinters } from "../services/printers.services";
 import { getArticleData } from "../services/article.services";
 import { transform } from "../utils/format-numbers";
 const { jsPDF } = require("jspdf");
@@ -11,6 +10,7 @@ export async function getPrintArticles(
     req: RequestWithUser,
     res: Response) {
       const token = req.headers.authorization
+      const database = req.database
       try {
         const id = req.body
         if(!id){
@@ -26,12 +26,6 @@ export async function getPrintArticles(
         const articles = await getArticleData(id, token)
         if(!articles){
           return res.status(404).json({ message: "Articles not found" });
-        }
-
-        const printer = await getPrinters(token, "Etiqueta");
-    
-        if (!printer) {
-          return res.status(404).json({ message: "Printer not found" });
         }
     
         const pageWidth = 210;
@@ -66,7 +60,7 @@ export async function getPrintArticles(
         articleItem.description.length > 28
         ? doc.text(articleItem.description.slice(28, 105) + '-', x+1, (y+23))
         : '';
-        
+
         doc.text(x+1, y+26, articleItem.make ? articleItem.make.description : '');
         doc.setFontSize(7);
         // doc.text(x+1, y+29, articleItem.barcode);
@@ -95,9 +89,9 @@ export async function getPrintArticles(
       }
 
       doc.autoPrint();
-      doc.save(`article-f.pdf`)
+      doc.save(`article-${database}.pdf`)
   
-      const pdfPath = `article-f.pdf`;
+      const pdfPath = `article-${database}.pdf`;
   
       if (fs.existsSync(pdfPath)) {
         res.contentType("application/pdf");
