@@ -1,3 +1,4 @@
+import Make from "./make"
 import Model from "./model"
 
 export default interface Article extends Model {
@@ -30,9 +31,7 @@ export default interface Article extends Model {
   markupPrice: number
   salePrice: number
   //currency: Currency
-  make:{
-    description: string
-  }
+  make: Make
   //category: Category
   deposits: {
    // deposit: Deposit

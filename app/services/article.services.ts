@@ -1,26 +1,41 @@
 import axios from "axios";
 import Article from "../models/article";
+import { ObjectId } from "mongodb";
+import MongoDBManager from "../db/connection";
 
+const mongoDBManager = new MongoDBManager();
 
-export async function getArticleData(articleIds: string, token: string): Promise <Article[]>{
-    try {
-        const URL = `${process.env.APIV1}article`;
-        const headers = {
-            'Authorization': token,
-        };
+export async function getArticleData(articleId: string, token: string): Promise<Article[]> {
+  try {
+    const URL = `${process.env.APIV1}article`;
+    const headers = {
+      'Authorization': token,
+    };
 
-        let articleIdsArray = Array.isArray(articleIds) ? articleIds : [articleIds];
-        const responses: Article[] = [];
-
-        for (const id of articleIdsArray) {
-            const params = { 'id': id };
-            const data = await axios.get(URL, { headers, params });
-            responses.push(data.data.article);
-        }
-
-        return responses;
-    } catch (error) {
-        console.log(error)
+    const params = {
+      id: articleId
     }
+    const data = await axios.get(URL, { headers, params });
+    const responses: Article[] = data.data.article
+
+
+
+    return responses;
+  } catch (error) {
+    console.log(error)
+  }
 }
 
+
+export async function getArticlesData(ids: string[], database: string): Promise<Article[]> {
+  try {
+    await mongoDBManager.initConnection(database);
+    const objectIdArray = ids.map(id => new ObjectId(id));
+    const articlesCollection = mongoDBManager.getCollection('articles');
+    const articles = await articlesCollection.find({ _id: { $in: objectIdArray } }).toArray()
+
+    return articles;
+  } catch (error) {
+    console.log(error)
+  }
+}
