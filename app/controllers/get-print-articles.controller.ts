@@ -55,25 +55,26 @@ export async function getPrintArticles(
       doc.setFontSize(9);
       doc.setFont('helvetica', 'italic');
       articleItem.description.length > 0
-        ? doc.text(articleItem.description.slice(0, 28) + '-', x + 1, y + 20)
+        ? doc.text(articleItem.description.slice(0, 30) + '-', x + 1, y + 20)
         : ''
-      articleItem.description.length > 28
-        ? doc.text(articleItem.description.slice(28, 105) + '-', x + 1, (y + 23))
+      articleItem.description.length > 30
+        ? doc.text(articleItem.description.slice(30, 58) + '-', x + 1, (y + 23))
         : '';
-      doc.setFontSize(7);
-      // doc.text(x+1, y+29, articleItem.barcode);
+      articleItem.description.length > 58
+        ? articleItem.description.slice(58, 105)
+        : '';
       doc.setFontSize(9);
-      doc.setFont('helvetica', 'normal');
       doc.setFont('helvetica', 'bold');
       doc.text(x + 1, y + 29, config.companyFantasyName);
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(7);
       doc.text(x + 40, y + 29, datetime);
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'italic');
       const make = await getmake(articleItem.make, database)
+
       if (make) {
-        for (let i = 0; i < make.length; i++) {
-          doc.text(x + 1, y + 26, make[i].description || '');
-        }
+        doc.text(x + 1, y + 26, make.description || '');
       }
       //validate position
       if (x >= 110) {

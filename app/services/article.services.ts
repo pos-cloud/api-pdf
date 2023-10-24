@@ -5,7 +5,7 @@ import MongoDBManager from "../db/connection";
 
 const mongoDBManager = new MongoDBManager();
 
-export async function getArticleData(articleId: string, token: string): Promise<Article[]> {
+export async function getArticleData(articleId: string, token: string): Promise<Article> {
   try {
     const URL = `${process.env.APIV1}article`;
     const headers = {
@@ -16,22 +16,19 @@ export async function getArticleData(articleId: string, token: string): Promise<
       id: articleId
     }
     const data = await axios.get(URL, { headers, params });
-    const responses: Article[] = data.data.article
-
-
-
+    const responses: Article = data.data.article
+  
     return responses;
   } catch (error) {
     console.log(error)
   }
 }
 
-
 export async function getArticlesData(ids: string[], database: string): Promise<Article[]> {
   try {
     await mongoDBManager.initConnection(database);
     const objectIdArray = ids.map(id => new ObjectId(id));
-    const articlesCollection = mongoDBManager.getCollection('articles');
+    const articlesCollection = mongoDBManager.getCollection('articles'); 
     const articles = await articlesCollection.find({ _id: { $in: objectIdArray } }).toArray()
 
     return articles;

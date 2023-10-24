@@ -25,8 +25,7 @@ const fs = require('fs');
     if(!quantity){
       return res.status(404).json({ message: "no quantity found" });
     }
-    const articles = await getArticleData(articleId, token);
-    const article = articles[0]
+    const article = await getArticleData(articleId, token);
     if (!article) {
       return res.status(404).json({ message: "Article not found" });
     }
@@ -43,7 +42,6 @@ const fs = require('fs');
     const orientation = printer.orientation;
     const doc = new jsPDF(orientation, units, [pageWidth, pageHigh]);
 
-    if (quantity && parseInt(quantity) >= 1) {
       for (let index = 0; index < parseInt(quantity); index++) {
         if (index > 0) {
           doc.addPage();
@@ -97,7 +95,6 @@ const fs = require('fs');
             }
           }
         }
-    }
 
     doc.autoPrint();
     doc.save(`article-${articleId}.pdf`)
