@@ -3,15 +3,15 @@ import { getArticleData } from "../services/article.services";
 import { getPrinters } from "../services/printers.services";
 import RequestWithUser from "../interfaces/requestWithUser.interface";
 import { getBarcode } from "../utils/getBarcode";
-import { getCompanyPictureData, getCompanyPictureFromGoogle } from "../services/get-picture.service";
+import {getCompanyPictureFromGoogle } from "../services/get-picture.services";
 import { getConfig } from "../services/config.services";
 const { jsPDF } = require("jspdf");
 const fs = require('fs');
 
-export async function getPrintArticle(
+ export async function getPrintArticle(
   req: RequestWithUser,
   res: Response
-) {
+ ) {
   const token = req.headers.authorization
   const articleId: string = req.query.articleId as string;
   const quantity: string = req.query.quantity as string;
@@ -29,6 +29,7 @@ export async function getPrintArticle(
     if (!article) {
       return res.status(404).json({ message: "Article not found" });
     }
+    
     const printer = await getPrinters(token, "Etiqueta");
 
     if (!printer) {
@@ -40,62 +41,60 @@ export async function getPrintArticle(
     const units = 'mm';
     const orientation = printer.orientation;
     const doc = new jsPDF(orientation, units, [pageWidth, pageHigh]);
-    if (quantity && parseInt(quantity) >= 1) {
+
       for (let index = 0; index < parseInt(quantity); index++) {
         if (index > 0) {
           doc.addPage();
         }
-        for (const field of printer.fields) {
-          switch (field.type) {
-            case 'label':
-              if (field.font !== 'default') {
-                doc.setFont(field.font, field.fontType);
-              }
-              doc.setFontSize(field.fontSize);
-              doc.text(field.positionStartX, field.positionStartY, field.value);
-              break;
-            case 'line':
-              doc.setLineWidth(field.fontSize);
-              doc.line(field.positionStartX, field.positionStartY, field.positionEndX, field.positionEndY);
-              break;
-            case 'image':
-              try {
-                //const img = await getCompanyPictureData(eval(field.value), token);
-                const img = await getCompanyPictureFromGoogle(eval(field.value));
-                doc.addImage(img, 'png', field.positionStartX, field.positionStartY, field.positionEndX, field.positionEndY);
-              } catch (error) {
-                console.log(error);
-              }
-              break;
-            case 'barcode':
-              try {
-                const response = await getBarcode('code128', eval(field.value));
-                doc.addImage(response, 'png', field.positionStartX, field.positionStartY, field.positionEndX, field.positionEndY);
-              } catch (error) {
-                console.log(error);
-              }
-              break;
-            case 'data':
-            case 'dataEsp':
-              if (field.font !== 'default') {
-                doc.setFont(field.font, field.fontType);
-              }
-              doc.setFontSize(field.fontSize);
-              try {
-                const text = field.positionEndX || field.positionEndY
-                  ? eval(field.value).toString().slice(field.positionEndX, field.positionEndY)
-                  : eval(field.value).toString();
-                doc.text(field.positionStartX, field.positionStartY, text);
-              } catch (e) {
-                doc.text(field.positionStartX, field.positionStartY, " ");
-              }
-              break;
-            default:
-              break;
+          for (const field of printer.fields) {
+            switch (field.type) {
+              case 'label':
+                if (field.font !== 'default') {
+                  doc.setFont(field.font, field.fontType);
+                }
+                doc.setFontSize(field.fontSize);
+                doc.text(field.positionStartX, field.positionStartY, eval(field.value));
+                break;
+              case 'line':
+                doc.setLineWidth(field.fontSize);
+                doc.line(field.positionStartX, field.positionStartY, field.positionEndX, field.positionEndY);
+                break;
+              case 'image':
+                try {
+                  const img = await getCompanyPictureFromGoogle(eval(field.value));
+                  doc.addImage(img, 'png', field.positionStartX, field.positionStartY, field.positionEndX, field.positionEndY);
+                } catch (error) {
+                  console.log(error);
+                }
+                break;
+              case 'barcode':
+                try {
+                  const response = await getBarcode('code128', eval(field.value));
+                  doc.addImage(response, 'png', field.positionStartX, field.positionStartY, field.positionEndX, field.positionEndY);
+                } catch (error) {
+                  console.log(error);
+                }
+                break;
+              case 'data':
+              case 'dataEsp':
+                if (field.font !== 'default') {
+                  doc.setFont(field.font, field.fontType);
+                }
+                doc.setFontSize(field.fontSize);
+                try {
+                  const text = field.positionEndX || field.positionEndY
+                    ? eval(field.value).toString().slice(field.positionEndX, field.positionEndY)
+                    : eval(field.value).toString();
+                  doc.text(field.positionStartX, field.positionStartY, text);
+                } catch (e) {
+                  doc.text(field.positionStartX, field.positionStartY, " ");
+                }
+                break;
+              default:
+                break;
+            }
           }
         }
-      }
-    }
 
     doc.autoPrint();
     doc.save(`article-${articleId}.pdf`)
@@ -125,4 +124,4 @@ export async function getPrintArticle(
     console.log(error);
     res.status(500).json({ message: "Internal server error", error: error });
   }
-}
+ }
