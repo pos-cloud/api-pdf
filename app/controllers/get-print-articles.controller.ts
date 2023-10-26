@@ -2,7 +2,7 @@ import { getConfig } from "../services/config.services";
 import RequestWithUser from "../interfaces/requestWithUser.interface";
 import { Response } from "express";
 import { getArticlesData } from "../services/article.services";
-import { transform } from "../utils/format-numbers";
+import { formatNumberWithCommas, transform } from "../utils/format-numbers";
 import { getmake } from "../services/make.services";
 const { jsPDF } = require("jspdf");
 const fs = require('fs');
@@ -47,10 +47,11 @@ export async function getPrintArticles(
       + currentdate.getMinutes()
 
     for (let articleItem of articles) {
+      let salePriceTransform = transform(articleItem.salePrice)
       doc.rect(x, y, 60, 30.5);
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(30);
-      doc.text(x + 5, y + 12, `$${transform(articleItem.salePrice)}`);
+      doc.text(x + 5, y + 12, `$${formatNumberWithCommas(salePriceTransform)}`);
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(9);
       doc.setFont('helvetica', 'italic');

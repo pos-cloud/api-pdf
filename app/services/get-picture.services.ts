@@ -27,8 +27,7 @@ export function getCompanyPictureFromGoogle(picture: string): Promise<string> {
           resolve('data:image/jpeg;base64,' + base64Image);
         })
         .catch(error => {
-          console.error('Error al obtener la imagen:', error);
-          reject(error);
+          reject(error.response.statusText);
         });
     });
 }

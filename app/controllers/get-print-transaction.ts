@@ -9,7 +9,7 @@ import { getMovementsOfArticle } from "../services/movements-of-articles.service
 import Transaction from "../models/transaction";
 import Config from "../models/config";
 import { calculateQRAR } from "../utils/calculateQRAR";
-import { transform, numberDecimal } from "../utils/format-numbers";
+import { transform, formatNumberWithCommas } from "../utils/format-numbers";
 import { getMovementsOfCash } from "../services/movements-of-cash.services";
 import MovementOfCash from "../models/movement-of-cash";
 import { getCompanyPictureFromGoogle } from "../services/get-picture.services";
@@ -17,7 +17,7 @@ import MovementOfArticle from "../models/movements-of-articles";
 const fs = require('fs');
 const { jsPDF } = require("jspdf");
 
-async function header(doc: any, transaction: Transaction, config: Config, movementsOfArticles: MovementOfArticle[]){
+async function header(doc: any, transaction: Transaction, config: Config, movementsOfArticles: MovementOfArticle[]) {
   doc.line(4, 6, 4, 48, "FD"); // Linea Vertical
   doc.line(205, 6, 205, 48, "FD"); // Linea Vertical
   doc.line(4, 48, 205, 48, "FD"); // Linea Horizontal
@@ -35,7 +35,7 @@ async function header(doc: any, transaction: Transaction, config: Config, moveme
   doc.line(4, 65, 205, 65, "FD"); // Linea Horizontal
 
   //CONTENIDO
-  if (movementsOfArticles) {
+  if (movementsOfArticles.length) {
     doc.setFontSize(9)
     doc.setFont("helvetica", "bold");
 
@@ -127,12 +127,12 @@ async function header(doc: any, transaction: Transaction, config: Config, moveme
 
 async function footer(doc: any, transaction: Transaction, qrDate: string, movementsOfCash: MovementOfCash[], movementsOfArticles: MovementOfArticle[]) {
 
-  if (movementsOfCash && movementsOfArticles) {
+  if (movementsOfCash && movementsOfArticles.length) {
     doc.line(6, 225, 205, 225, "FD"); // Linea Horizontal
     doc.line(6, 225, 6, 290, "FD"); // Linea Vertical
     doc.line(205, 225, 205, 290, "FD"); // Linea Vertical
     doc.line(6, 290, 205, 290, "FD"); // Linea Horizontal
-  
+
 
     doc.line(8, 227, 133, 227, "FD"); // Linea Horizontal
     doc.line(8, 227, 8, 231, "FD"); // Linea Vertical
@@ -154,12 +154,12 @@ async function footer(doc: any, transaction: Transaction, qrDate: string, moveme
     for (let i = 0; i < movementsOfCash.length; i++) {
 
       doc.text(movementsOfCash[i].type.name, 10, verticalPosition)
-      doc.text(`$${numberDecimal(movementsOfCash[i].amountPaid)}`, 112, verticalPosition)
+      doc.text(`$${formatNumberWithCommas(movementsOfCash[i].amountPaid)}`, 112, verticalPosition)
       movementsOfCash[i].observation.length > 0
-        ? doc.text(`${movementsOfCash[i].observation.slice(0, 37)}-`, 44, verticalPosition)
+        ? doc.text(`${movementsOfCash[i].observation.slice(0, 30)}-`, 44, verticalPosition)
         : '';
       if (movementsOfCash[i].observation.length > 35) {
-        doc.text(`${movementsOfCash[i].observation.slice(37, 105)}-`, 44, (verticalPosition + 4)) || '';
+        doc.text(`${movementsOfCash[i].observation.slice(30, 105)}-`, 44, (verticalPosition + 4)) || '';
         verticalPosition += 8;
       } else {
         verticalPosition += 4;
@@ -182,7 +182,7 @@ async function footer(doc: any, transaction: Transaction, qrDate: string, moveme
         percentage += (1 + transaction.taxes[i].percentage / 100)
 
         doc.setFont("helvetica", "normal");
-        doc.text(`$ ${transaction.taxes[i].taxAmount ? numberDecimal(transaction.taxes[i].taxAmount) : ''}`, 179, verticalPosition)
+        doc.text(`$ ${transaction.taxes[i].taxAmount ? formatNumberWithCommas(transaction.taxes[i].taxAmount) : ''}`, 179, verticalPosition)
         doc.setFont("helvetica", "bold");
         doc.text(transaction.taxes[i].tax.name, 138, verticalPosition)
         verticalPosition += 7;
@@ -192,9 +192,9 @@ async function footer(doc: any, transaction: Transaction, qrDate: string, moveme
       doc.setFont("helvetica", "bold");
       doc.text('Total:', 138, verticalPosition);
       doc.setFont("helvetica", "normal");
-      doc.text(`$ ${transaction.totalPrice ? numberDecimal(transaction.totalPrice) : ''} `, 179, verticalPosition)
-      doc.text(`${transaction.totalPrice ? numberDecimal(transaction.totalPrice) : ''} `, 179, 235)
-      doc.text(`$ ${texBase ? numberDecimal(texBase) : ''}`, 179, 247)
+      doc.text(`$ ${transaction.totalPrice ? formatNumberWithCommas(transaction.totalPrice) : ''} `, 179, verticalPosition)
+      doc.text(`${transaction.totalPrice ? formatNumberWithCommas(transaction.totalPrice) : ''} `, 179, 235)
+      doc.text(`$ ${texBase ? formatNumberWithCommas(texBase) : ''}`, 179, 247)
       doc.text(`${transaction.discountAmount / percentage > 0 ? `$ ${transform(transaction.discountAmount / percentage, 2)}` : ''}`, 179, 241)
     }
 
@@ -210,18 +210,25 @@ async function footer(doc: any, transaction: Transaction, qrDate: string, moveme
     doc.line(6, 250, 6, 290, "FD"); // Linea Vertical
     doc.line(205, 250, 205, 290, "FD"); // Linea Vertical
     doc.line(6, 290, 205, 290, "FD"); // Linea Horizontal
-  
-    doc.setFontSize(10)
-    doc.setFont("helvetica", "bold");
-    doc.text('Total:', 138, 257)
-    doc.setFont("helvetica", "normal");
-    doc.text(`$ ${numberDecimal(transaction.totalPrice)} ` || '', 179, 257)
+
+    if (transaction.type.printSign) {
+      doc.line(80, 267, 130, 267);
+      doc.setFontSize(10)
+      doc.text('FIRMA CONFORME', 88, 273)
+    } else {
+      doc.setFontSize(10)
+      doc.setFont("helvetica", "bold");
+      doc.text('Total:', 138, 257)
+      doc.setFont("helvetica", "normal");
+      doc.text(`$ ${formatNumberWithCommas(transaction.totalPrice)} ` || '', 179, 257)
+    }
   }
+
   if (transaction.observation.length > 0) {
     doc.setFont("helvetica", "bold");
-    doc.text('Observaciones:', 9, 272)
+    doc.text('Observaciones:', 9, 280)
     doc.setFont("helvetica", "normal");
-    let row = 272;
+    let row = 280;
     transaction.observation.length > 0
       ? doc.text(transaction.observation.slice(0, 45) + '-', 37, row)
       : '';
@@ -261,7 +268,6 @@ export async function getPrintTransaction(
 
     const movementsOfCashs = await getMovementsOfCash(token, transactionId)
 
-
     const pageWidth = printers.pageWidth;
     const pageHigh = printers.pageHigh;
     const units = "mm";
@@ -271,19 +277,32 @@ export async function getPrintTransaction(
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
 
-    if (config.companyPicture && config.companyPicture.length > 0) {
-      const img = await getCompanyPictureFromGoogle(config.companyPicture);
-      doc.addImage(img, 'JPEG', 15, 8, 60, 26)
-    } else {
-      doc.text(config.companyPicture, 15, 16)
-    }
-
+   
+    await getCompanyPictureFromGoogle(config.companyPicture)
+    .then((imgData) => {
+      doc.addImage(imgData, 'png', 15, 8, 60, 26)
+    })
+    .catch(error => {
+      console.error('Error al obtener la imagen:', error);
+      doc.setFontSize(15)
+      doc.setFont("helvetica", "bold");
+      config.companyFantasyName.length > 0
+        ? doc.text(config.companyFantasyName.slice(0, 19), 15, 16)
+        : ''
+      config.companyFantasyName.length > 19
+        ? doc.text(config.companyFantasyName.slice(19, 40), 15, 23)
+        : '';
+      config.companyFantasyName.length > 40
+        ? config.companyFantasyName.slice(32, 105)
+        : '';
+    })
+    
     let verticalPosition = 79;
-    let articlesPerPage = 37;
+    let articlesPerPage = 26;
     let articlesOnCurrentPage = 0;
     let currentPage = 1;
 
-    if (movementsOfArticles && movementsOfCashs) {
+    if (movementsOfArticles.length > 0 && movementsOfCashs || movementsOfArticles.length > 0 && !movementsOfCashs) {
       for (let i = 0; i < movementsOfArticles.length; i++) {
         doc.setFontSize(9)
         doc.setFont("helvetica", "bold");
@@ -308,11 +327,15 @@ export async function getPrintTransaction(
 
         doc.text(`${movementsOfArticle.amount}`, 6, verticalPosition);
         doc.text(movementsOfArticle.code, 17, verticalPosition);
-        doc.text(movementsOfArticle.description, 42, verticalPosition);
-        doc.text(`$ ${numberDecimal(movementsOfArticle.unitPrice)}`, 129, verticalPosition);
+        movementsOfArticle.description.length > 0
+          ? doc.text(movementsOfArticle.description.slice(0, 55), 42, verticalPosition) : ''
+        movementsOfArticle.description.length > 55
+          ? movementsOfArticle.description.slice(55, 105)
+          : '';
+        doc.text(`$ ${formatNumberWithCommas(movementsOfArticle.unitPrice)}`, 129, verticalPosition);
         doc.text(movementsOfArticle.taxes[0]?.percentage !== undefined ? `${movementsOfArticle.taxes[0]?.percentage}%` : "", 173, verticalPosition);
         doc.text(`${movementsOfArticle.discountRate}%`, 153, verticalPosition)
-        doc.text(`$ ${numberDecimal(movementsOfArticle.salePrice)}`, 184, verticalPosition);
+        doc.text(`$ ${formatNumberWithCommas(movementsOfArticle.salePrice)}`, 184, verticalPosition);
 
         if (movementsOfArticle.notes) {
           verticalPosition += 9;
@@ -325,41 +348,42 @@ export async function getPrintTransaction(
       header(doc, transaction, config, movementsOfArticles);
       footer(doc, transaction, qrDate, movementsOfCashs, movementsOfArticles);
 
-    } else if (movementsOfCashs && movementsOfCashs.length > 0) {
+    } else if (!movementsOfArticles.length && movementsOfCashs || !movementsOfArticles.length && !movementsOfCashs) {
+      if (movementsOfCashs){
+        for (let i = 0; i < movementsOfCashs.length; i++) {
+          const movementsOfCash = movementsOfCashs[i];
+          if (articlesOnCurrentPage >= articlesPerPage) {
+            header(doc, transaction, config, movementsOfArticles);
 
-      for (let i = 0; i < movementsOfCashs.length; i++) {
-        const movementsOfCash = movementsOfCashs[i];
-        if (articlesOnCurrentPage >= articlesPerPage) {
-          header(doc, transaction, config, movementsOfArticles);
-
-          if (i !== movementsOfCashs.length - 1) {
-            doc.addPage();
-            currentPage++;
-            verticalPosition = 84;
-            articlesOnCurrentPage = 0;
+            if (i !== movementsOfCashs.length - 1) {
+              doc.addPage();
+              currentPage++;
+              verticalPosition = 84;
+              articlesOnCurrentPage = 0;
+            }
           }
-        }
 
-        doc.setFont('helvetica', 'italic');
-        doc.setFontSize(7);
+          doc.setFont('helvetica', 'italic');
+          doc.setFontSize(7);
 
-        doc.text(movementsOfCash.observation || "", 8, verticalPosition + 5);
+          doc.text(movementsOfCash.observation || "", 8, verticalPosition + 5);
 
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(9);
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(9);
 
-        doc.text(`${movementsOfCash.type.name}`, 6, verticalPosition);
-        doc.text(formatDate(movementsOfCash.expirationDate), 73, verticalPosition);
-        doc.text(movementsOfCash.number || '-', 102, verticalPosition);
-        doc.text(movementsOfCash.bank ? movementsOfCash.bank.name : '-', 132, verticalPosition);
-        doc.text(`$ ${movementsOfCash.amountPaid}`, 177, verticalPosition);
+          doc.text(`${movementsOfCash.type.name}`, 6, verticalPosition);
+          doc.text(formatDate(movementsOfCash.expirationDate), 73, verticalPosition);
+          doc.text(movementsOfCash.number || '-', 102, verticalPosition);
+          doc.text(movementsOfCash.bank ? movementsOfCash.bank.name : '-', 132, verticalPosition);
+          doc.text(`$ ${movementsOfCash.amountPaid}`, 177, verticalPosition);
 
-        if (movementsOfCash.observation) {
-          verticalPosition += 9;
-          articlesOnCurrentPage++;
-        } else {
-          verticalPosition += 6;
-          articlesOnCurrentPage++;
+          if (movementsOfCash.observation) {
+            verticalPosition += 9;
+            articlesOnCurrentPage++;
+          } else {
+            verticalPosition += 6;
+            articlesOnCurrentPage++;
+          }
         }
       }
       header(doc, transaction, config, movementsOfArticles);

@@ -30,18 +30,9 @@ export function transform(value: any, numberOfDecimals: number = 2): any {
 
 }
 
-export function numberDecimal(numberDecimal: number) {
-    return numberDecimal.toLocaleString('es-ES', {
-      style: 'decimal',
-      minimumFractionDigits: 1,
-      maximumFractionDigits: 2,
-    });
+export function formatNumberWithCommas(number: number) {
+    if (typeof number !== 'number') {
+      return number;
+    }
+    return number.toLocaleString('es-AR'); 
   }
-
-// export function numberDecimal(numberDecimal: number) {
-//     if (typeof numberDecimal === 'number') {
-//         return numberDecimal.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-//     } else {
-//         return 'NaN'; // O manejar otro caso si no es un número válido
-//     }
-// }

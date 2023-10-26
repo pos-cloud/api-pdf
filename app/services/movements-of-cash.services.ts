@@ -16,6 +16,6 @@ export async function getMovementsOfCash(token: string, id: string): Promise<Mov
     const response: MovementOfCash[] = data.data.movementsOfCashes
     return response
    } catch (error) {
-    console.log(error)
+    return error
    }
 }
