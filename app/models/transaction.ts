@@ -10,7 +10,7 @@ export default interface Transaction extends Model {
   number: number
   date: Date
   startDate: Date
-  endDate: Date
+  endDate: string
   expirationDate: Date
   VATPeriod: string
   VatCondition: VATCondition
