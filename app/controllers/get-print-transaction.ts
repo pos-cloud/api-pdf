@@ -42,18 +42,18 @@ async function header(doc: any, transaction: Transaction, config: Config, moveme
 
     doc.setFont("helvetica", "bold");
     doc.setFontSize(9);
-    doc.text(`Razón Social:  ${config.companyName}`, 9, 25);
-    doc.text(`Domicilio Comercial:   ${config.companyAddress}`, 9, 30);
-    doc.text(`Cliente:   ${config.companyVatCondition?.description || ""}`, 9, 35);
-    doc.text(`C.U.I.T: ${config.companyIdentificationValue}`, 9, 40);
+    doc.text(`Razón Social:  ${config.companyName}`, 5, 25);
+    doc.text(`Domicilio Comercial:   ${config.companyAddress}`, 5, 30);
+    doc.text(`Cliente:   ${config.companyVatCondition?.description || ""}`, 5, 35);
+    doc.text(`C.U.I.T: ${config.companyIdentificationValue}`, 5, 40);
     doc.setFont("helvetica", "normal");
-    doc.line(0, 48, 100, 48, "FD"); // Línea Vertical
     }
 
     if (transaction.type.electronics && movementsOfArticles.length) {
+      doc.line(0, 43, 100, 43, "FD"); // Línea Vertical
       doc.setFont("times", "bold");
       doc.setFontSize(28);
-      doc.text(transaction.letter, 20, 49);
+      doc.text(transaction.letter, 20, 51);
       if (transaction.type.codes && config.country === 'AR') {
         for (let i = 0; i < transaction.type.codes.length; i++) {
           if (
@@ -61,15 +61,15 @@ async function header(doc: any, transaction: Transaction, config: Config, moveme
             transaction.letter === transaction.type.codes[i].letter
           ) {
             doc.setFontSize(5);
-            doc.text('Cod.' + padString(transaction.type.codes[i].code.toString(), 2), 20, 52);
+            doc.text('Cod.' + padString(transaction.type.codes[i].code.toString(), 2), 20, 54);
           }
         }
       }
       doc.setFontSize(10);
-      doc.text('ORIGINAL', 15, 55);
+      doc.text('ORIGINAL', 15, 57);
 
       doc.setFontSize(12);
-      doc.text(`${transaction.type.labelPrint ? transaction.type.labelPrint : transaction.type.name}`, 45, 48)
+      doc.text(`${transaction.type.labelPrint ? transaction.type.labelPrint : transaction.type.name}`, 45, 50)
     
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(8);
@@ -80,16 +80,16 @@ async function header(doc: any, transaction: Transaction, config: Config, moveme
           '-' +
           padString(transaction.number, 8),
           45,
-          52
+          54
         );
       } else {
-        doc.text('N°:' + padString(transaction.number, 8), 45, 52);
+        doc.text('N°:' + padString(transaction.number, 8), 45, 54);
       }
 
-      doc.text(transaction.endDate ? transaction.endDate.split(' ')[0] : '', 45, 55);
+      doc.text(transaction.endDate ? transaction.endDate.split(' ')[0] : '', 45, 57);
 
       doc.line(0, 59, 100, 59, "FD"); // Línea Vertical
-      doc.text(`Cliente:   ${transaction.company.fantasyName || ""}`, 9, 63);
+      doc.text(`Cliente:   ${transaction.company ? transaction.company.fantasyName : ""}`, 9, 63);
 
       doc.setFont("helvetica", "normal");
       doc.setFontSize(8);
@@ -104,7 +104,7 @@ async function header(doc: any, transaction: Transaction, config: Config, moveme
     } else if (!transaction.type.electronics && !movementsOfArticles.length) {
       doc.setFont("helvetica", "normal");
       doc.setFontSize(8);
-
+      doc.line(0, 48, 100, 48, "FD"); // Línea Vertical
       if (transaction.endDate) {
         doc.text(
           'Hora: ' +
@@ -123,18 +123,18 @@ async function header(doc: any, transaction: Transaction, config: Config, moveme
       doc.setFont("helvetica", "bold");
 
       doc.text(`Cobro N°:  ${transaction.orderNumber > 0 ? transaction.orderNumber : transaction.number}`, 9, 53)
-      doc.text(`Cliente: ${transaction.company.fantasyName || "Consumidor Final"}`, 9, 61);
+      doc.text(`Cliente: ${transaction.company ? transaction.company.fantasyName : "Consumidor Final"}`, 9, 61);
 
       doc.line(0, 65, 100, 65, "FD"); // Línea Vertical
 
-      doc.text('Desc.', 9, 70);
+      doc.text('Descripcion', 9, 70);
       doc.text('Importe', 64, 70);
 
       doc.line(0, 74, 100, 74, "FD"); // Línea Vertical
     } else if (!transaction.type.electronics && movementsOfArticles.length) {
       doc.setFont("helvetica", "normal");
       doc.setFontSize(8);
-
+      doc.line(0, 48, 100, 48, "FD"); // Línea Vertical
       if (transaction.endDate) {
         doc.text(
           'Hora: ' +
@@ -157,13 +157,12 @@ async function header(doc: any, transaction: Transaction, config: Config, moveme
 
       doc.line(0, 65, 100, 65, "FD"); // Línea Vertical
 
-      doc.text('Desc.', 9, 70);
+      doc.text('Descripcion', 9, 70);
       doc.text('Importe', 64, 70);
 
       doc.line(0, 74, 100, 74, "FD"); // Línea Vertical
     }
   } else {
-
     if (companyImg === null) {
       doc.setFontSize(15)
       doc.setFont("helvetica", "bold");
@@ -309,7 +308,7 @@ async function footer(doc: any, transaction: Transaction, qrDate: string, moveme
         for (let i = 0; i < movementsOfCash.length; i++) {
           doc.setFont("helvetica", "normal");
           doc.setFontSize(11);
-          doc.text(`${movementsOfCash[i].type.name.length ? movementsOfCash[i].type.name : ''}: $${formatNumberWithCommas(movementsOfCash[i].amountPaid)}`, 6, fila + 5);
+          doc.text(`${movementsOfCash[i].type ? movementsOfCash[i].type.name : ''}: $${formatNumberWithCommas(movementsOfCash[i].amountPaid)}`, 6, fila + 5);
           fila += 5;
         }
         fila += 9;
@@ -332,7 +331,7 @@ async function footer(doc: any, transaction: Transaction, qrDate: string, moveme
         doc.setFont("helvetica", "normal");
         doc.setFontSize(11);
         doc.text(` $${formatNumberWithCommas(movementsOfCash[i].amountPaid)}`, 5, fila + 5);
-        doc.text(`${movementsOfCash[i].type.name.length ? movementsOfCash[i].type.name : ''}`, 35, fila + 5);
+        doc.text(`${movementsOfCash[i].type ? movementsOfCash[i].type.name : ''}`, 35, fila + 5);
         fila += 5;
       }
 
