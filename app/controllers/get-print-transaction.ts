@@ -401,8 +401,7 @@ async function footer(doc: any, transaction: Transaction, qrDate: string, moveme
       doc.setFont("helvetica", "bold");
       doc.text('Subtotal:', 138, 235);
       doc.text('Descuento:', 138, 241);
-      doc.text('Neto Gravado:', 138, 247);
-
+       
       if (transaction) {
         let texBase = 0;
         let percentage = 0;
@@ -411,22 +410,31 @@ async function footer(doc: any, transaction: Transaction, qrDate: string, moveme
         for (let i = 0; i < transaction.taxes.length; i++) {
           texBase += transaction.taxes[i].taxBase;
           percentage += 1 + transaction.taxes[i].percentage / 100;
-
-          doc.setFont("helvetica", "normal");
-          doc.text(`$${transaction.taxes[i].taxAmount ? formatNumberWithCommas(transaction.taxes[i].taxAmount) : ''}`, 179, verticalPosition);
-          doc.setFont("helvetica", "bold");
-          doc.text(transaction.taxes[i].tax.name, 138, verticalPosition);
+          if(transaction.type.electronics){
+            doc.setFont("helvetica", "normal");
+            doc.text(`$${transaction.taxes[i].taxAmount ? formatNumberWithCommas(transaction.taxes[i].taxAmount) : ''}`, 179, verticalPosition);
+            doc.setFont("helvetica", "bold");
+            doc.text(transaction.taxes[i].tax.name, 138, verticalPosition);
+          }
           verticalPosition += 7;
         }
         verticalPosition += 0, 5;
 
-        doc.setFont("helvetica", "bold");
-        doc.text('Total:', 138, verticalPosition);
-        doc.setFont("helvetica", "normal");
-        doc.text(`$${transaction.totalPrice ? formatNumberWithCommas(transaction.totalPrice) : ''} `, 179, verticalPosition);
-        doc.text(`${transaction.totalPrice ? formatNumberWithCommas(transaction.totalPrice) : ''} `, 179, 235);
-        doc.text(`$${texBase ? formatNumberWithCommas(texBase) : ''}`, 179, 247);
-        doc.text(`${transaction.discountAmount / percentage > 0 ? `$${transform(transaction.discountAmount / percentage, 2)}` : ''}`, 179, 241);
+        if(transaction.type.electronics){
+          doc.setFont("helvetica", "bold");
+          doc.text('Neto Gravado:', 138, 247);
+          doc.text('Total:', 138, verticalPosition);
+          doc.setFont("helvetica", "normal");
+          doc.text(`$${transaction.totalPrice ? formatNumberWithCommas(transaction.totalPrice) : ''} `, 179, verticalPosition);
+          doc.text(`${transaction.totalPrice ? formatNumberWithCommas(transaction.totalPrice) : ''} `, 179, 235);
+          doc.text(`$${texBase ? formatNumberWithCommas(texBase) : ''}`, 179, 247);
+          doc.text(`${transaction.discountAmount / percentage > 0 ? `$${transform(transaction.discountAmount / percentage, 2)}` : ''}`, 179, 241);
+        }else{
+          doc.text('Total:', 138, 246);
+          doc.text(`${transaction.totalPrice ? formatNumberWithCommas(transaction.totalPrice) : ''} `, 179, 235);
+          doc.text(`$${transaction.totalPrice ? formatNumberWithCommas(transaction.totalPrice) : ''} `, 179, 246);
+          doc.text(`${transaction.discountAmount / percentage > 0 ? `$${transform(transaction.discountAmount / percentage, 2)}` : ''}`, 179, 241);
+        }
       }
 
       if (transaction.CAE && transaction.CAEExpirationDate) {
