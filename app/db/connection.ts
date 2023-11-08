@@ -40,6 +40,12 @@ class MongoDBManager {
       throw error;
     }
   }
+
+  async ensureConnection(databaseName: string) {
+    if (!this.client) {
+      await this.initConnection(databaseName);
+    }
+  }
 }
 
 export default MongoDBManager;
