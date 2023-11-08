@@ -5,11 +5,11 @@ class MongoDBManager {
   private database: Db | null = null;
   private collection: Collection<any> | null = null;
 
-  //uri = "mongodb+srv://pos:pos@cluster0.fscmrqu.mongodb.net/?retryWrites=true&w=majority";
+  uri = "mongodb+srv://pos:pos@cluster0.fscmrqu.mongodb.net/?retryWrites=true&w=majority";
 
   async initConnection(databaseName: string) {
     try {
-      const mongoUri = `${process.env.MONGO_URL}/${databaseName}`; 
+      const mongoUri = `${this.uri}/${databaseName}`; 
       if (!this.client) {
         this.client = await MongoClient.connect(mongoUri);
         this.database = this.client.db(databaseName);
