@@ -30,9 +30,11 @@ export function transform(value: any, numberOfDecimals: number = 2): any {
 
 }
 
-export function formatNumberWithCommas(number: number) {
-    if (typeof number !== 'number') {
-      return number;
+
+export function formatNumber(number: number): string {
+    if (Number.isInteger(number)) {
+        return number.toString() + '.00';
+    } else {
+        return number.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     }
-    return number.toLocaleString('es-AR'); 
-  }
+}

@@ -9,7 +9,7 @@ import { getMovementsOfArticle } from "../services/movements-of-articles.service
 import Transaction from "../models/transaction";
 import Config from "../models/config";
 import { calculateQRAR } from "../utils/calculateQRAR";
-import { transform, formatNumberWithCommas } from "../utils/format-numbers";
+import { transform, formatNumber } from "../utils/format-numbers";
 import { getMovementsOfCash } from "../services/movements-of-cash.services";
 import MovementOfCash from "../models/movement-of-cash";
 import { getCompanyPictureFromGoogle } from "../services/get-picture.services";
@@ -205,21 +205,29 @@ async function header(doc: any, transaction: Transaction, config: Config, moveme
       doc.line(205, 68, 205, 74, "FD"); // Línea Vertical
       doc.line(4, 74, 205, 74, "FD"); // Línea Horizontal
 
-      // Columnas
       doc.line(15, 68, 15, 74, "FD"); // Línea Vertical
       doc.line(41, 68, 41, 74, "FD"); // Línea Vertical
       doc.line(127, 68, 127, 74, "FD"); // Línea Vertical
       doc.line(151, 68, 151, 74, "FD"); // Línea Vertical
-      doc.line(171, 68, 171, 74, "FD"); // Línea Vertical
-      doc.line(182, 68, 182, 74, "FD"); // Línea Vertical
 
       doc.text('Cant.', 6, 72);
       doc.text('Código', 17, 72);
       doc.text('Descripción', 42, 72);
       doc.text('Precio U.', 129, 72);
-      doc.text('Desct.', 153, 72);
+      doc.text('desc %.', 153, 72);
+      // Columnas
+      if(transaction.type.electronics){
+      doc.line(171, 68, 171, 74, "FD"); // Línea Vertical
+      doc.line(182, 68, 182, 74, "FD"); // Línea Vertical
+
       doc.text('IVA', 173, 72);
       doc.text('Precio total', 184, 72);
+      }else{
+      doc.line(151, 68, 151, 74, "FD"); // Línea Vertical
+      doc.line(176, 68, 176, 74, "FD"); // Línea Vertical
+
+      doc.text('Precio total', 178, 72);
+      }
     } else {
       doc.setFontSize(9);
       doc.setFont("helvetica", "bold");
@@ -308,19 +316,19 @@ async function footer(doc: any, transaction: Transaction, qrDate: string, moveme
         for (let i = 0; i < movementsOfCash.length; i++) {
           doc.setFont("helvetica", "normal");
           doc.setFontSize(11);
-          doc.text(`${movementsOfCash[i].type ? movementsOfCash[i].type.name : ''}: $${formatNumberWithCommas(movementsOfCash[i].amountPaid)}`, 6, fila + 5);
+          doc.text(`${movementsOfCash[i].type ? movementsOfCash[i].type.name : ''}: $${formatNumber(movementsOfCash[i].amountPaid)}`, 6, fila + 5);
           fila += 5;
         }
         fila += 9;
         doc.setFont("times", "bold");
         doc.setFontSize(18);
-        doc.text(`TOTAL $ ${transaction.totalPrice ? formatNumberWithCommas(transaction.totalPrice) : ''}`, 22, fila);
+        doc.text(`TOTAL $ ${transaction.totalPrice ? formatNumber(transaction.totalPrice) : ''}`, 22, fila);
       }
     } else if (movementsOfCash && movementsOfArticles && transaction.type.electronics) {
       fila += 8;
       doc.setFont("times", "bold");
       doc.setFontSize(10);
-      doc.text(`TOTAL $ ${transaction.totalPrice ? formatNumberWithCommas(transaction.totalPrice) : ''}`, 50, fila);
+      doc.text(`TOTAL $ ${transaction.totalPrice ? formatNumber(transaction.totalPrice) : ''}`, 50, fila);
 
       doc.setFont("helvetica", "normal");
       doc.setFontSize(11);
@@ -330,7 +338,7 @@ async function footer(doc: any, transaction: Transaction, qrDate: string, moveme
       for (let i = 0; i < movementsOfCash.length; i++) {
         doc.setFont("helvetica", "normal");
         doc.setFontSize(11);
-        doc.text(` $${formatNumberWithCommas(movementsOfCash[i].amountPaid)}`, 5, fila + 5);
+        doc.text(` $${formatNumber(movementsOfCash[i].amountPaid)}`, 5, fila + 5);
         doc.text(`${movementsOfCash[i].type ? movementsOfCash[i].type.name : ''}`, 35, fila + 5);
         fila += 5;
       }
@@ -357,7 +365,7 @@ async function footer(doc: any, transaction: Transaction, qrDate: string, moveme
       fila += 11;
       doc.setFont("times", "bold");
       doc.setFontSize(18);
-      doc.text(`TOTAL $ ${transaction.totalPrice ? formatNumberWithCommas(transaction.totalPrice) : ''}`, 22, fila);
+      doc.text(`TOTAL $ ${transaction.totalPrice ? formatNumber(transaction.totalPrice) : ''}`, 22, fila);
     }
   } else {
     if (movementsOfCash && movementsOfArticles.length) {
@@ -385,7 +393,7 @@ async function footer(doc: any, transaction: Transaction, qrDate: string, moveme
       let verticalPosition = 235;
       for (let i = 0; i < movementsOfCash.length; i++) {
         doc.text(movementsOfCash[i].type.name, 10, verticalPosition);
-        doc.text(`$${formatNumberWithCommas(movementsOfCash[i].amountPaid)}`, 112, verticalPosition);
+        doc.text(`$${formatNumber(movementsOfCash[i].amountPaid)}`, 112, verticalPosition);
         movementsOfCash[i].observation.length > 0
           ? doc.text(`${movementsOfCash[i].observation.slice(0, 30)}-`, 44, verticalPosition)
           : '';
@@ -412,7 +420,7 @@ async function footer(doc: any, transaction: Transaction, qrDate: string, moveme
           percentage += 1 + transaction.taxes[i].percentage / 100;
           if(transaction.type.electronics){
             doc.setFont("helvetica", "normal");
-            doc.text(`$${transaction.taxes[i].taxAmount ? formatNumberWithCommas(transaction.taxes[i].taxAmount) : ''}`, 179, verticalPosition);
+            doc.text(`$${transaction.taxes[i].taxAmount ? formatNumber(transaction.taxes[i].taxAmount) : ''}`, 179, verticalPosition);
             doc.setFont("helvetica", "bold");
             doc.text(transaction.taxes[i].tax.name, 138, verticalPosition);
           }
@@ -425,14 +433,14 @@ async function footer(doc: any, transaction: Transaction, qrDate: string, moveme
           doc.text('Neto Gravado:', 138, 247);
           doc.text('Total:', 138, verticalPosition);
           doc.setFont("helvetica", "normal");
-          doc.text(`$${transaction.totalPrice ? formatNumberWithCommas(transaction.totalPrice) : ''} `, 179, verticalPosition);
-          doc.text(`${transaction.totalPrice ? formatNumberWithCommas(transaction.totalPrice) : ''} `, 179, 235);
-          doc.text(`$${texBase ? formatNumberWithCommas(texBase) : ''}`, 179, 247);
+          doc.text(`$${transaction.totalPrice ? formatNumber(transaction.totalPrice) : ''} `, 179, verticalPosition);
+          doc.text(`${transaction.totalPrice ? formatNumber(transaction.totalPrice) : ''} `, 179, 235);
+          doc.text(`$${texBase ? formatNumber(texBase) : ''}`, 179, 247);
           doc.text(`${transaction.discountAmount / percentage > 0 ? `$${transform(transaction.discountAmount / percentage, 2)}` : ''}`, 179, 241);
         }else{
           doc.text('Total:', 138, 246);
-          doc.text(`${transaction.totalPrice ? formatNumberWithCommas(transaction.totalPrice) : ''} `, 179, 235);
-          doc.text(`$${transaction.totalPrice ? formatNumberWithCommas(transaction.totalPrice) : ''} `, 179, 246);
+          doc.text(`${transaction.totalPrice ? formatNumber(transaction.totalPrice) : ''} `, 179, 235);
+          doc.text(`$${transaction.totalPrice ? formatNumber(transaction.totalPrice) : ''} `, 179, 246);
           doc.text(`${transaction.discountAmount / percentage > 0 ? `$${transform(transaction.discountAmount / percentage, 2)}` : ''}`, 179, 241);
         }
       }
@@ -458,7 +466,7 @@ async function footer(doc: any, transaction: Transaction, qrDate: string, moveme
         doc.setFont("helvetica", "bold");
         doc.text('Total:', 138, 257);
         doc.setFont("helvetica", "normal");
-        doc.text(`$${formatNumberWithCommas(transaction.totalPrice)} ` || '', 179, 257);
+        doc.text(`$${formatNumber(transaction.totalPrice)} ` || '', 179, 257);
       }
     }
 
@@ -485,7 +493,7 @@ async function toPrintInvoice(doc: any, transaction: Transaction, movementsOfCas
   let currentPage = 1;
   let row = 75
 
-
+var x = doc.internal.pageSize.width - 20
   if (movementsOfArticles.length > 0 && movementsOfCashs || movementsOfArticles.length > 0 && !movementsOfCashs) {
     for (let i = 0; i < movementsOfArticles.length; i++) {
       doc.setFontSize(9)
@@ -516,10 +524,12 @@ async function toPrintInvoice(doc: any, transaction: Transaction, movementsOfCas
       movementsOfArticle.description.length > 55
         ? movementsOfArticle.description.slice(55, 105)
         : '';
-      doc.text(`$ ${formatNumberWithCommas(movementsOfArticle.unitPrice)}`, 129, verticalPosition);
-      doc.text(movementsOfArticle.taxes[0]?.percentage !== undefined ? `${movementsOfArticle.taxes[0]?.percentage}%` : "", 173, verticalPosition);
+      doc.text(`$ ${formatNumber(movementsOfArticle.unitPrice)}`, 134, verticalPosition);
+      if(transaction.type.electronics){
+  doc.text(movementsOfArticle.taxes[0]?.percentage !== undefined ? `${movementsOfArticle.taxes[0]?.percentage}%` : "", 173, verticalPosition);
+      }
       doc.text(`${movementsOfArticle.discountRate}%`, 153, verticalPosition)
-      doc.text(`$ ${formatNumberWithCommas(movementsOfArticle.salePrice)}`, 184, verticalPosition);
+      doc.text(`$ ${formatNumber(movementsOfArticle.salePrice)}`, 190, verticalPosition);
 
       if (movementsOfArticle.notes) {
         verticalPosition += 9;
@@ -614,8 +624,8 @@ async function toPrintRoll(doc: any, transaction: Transaction, movementsOfCashs:
         movementsOfArticle.description.length > 20
           ? movementsOfArticle.description.slice(20, 105)
           : '';
-        doc.text(`$ ${formatNumberWithCommas(movementsOfArticle.unitPrice)}`, 50, verticalPosition);
-        doc.text(`$ ${formatNumberWithCommas(movementsOfArticle.salePrice)}`, 68, verticalPosition);
+        doc.text(`$ ${formatNumber(movementsOfArticle.unitPrice)}`, 50, verticalPosition);
+        doc.text(`$ ${formatNumber(movementsOfArticle.salePrice)}`, 68, verticalPosition);
 
         if (movementsOfArticle.notes) {
           verticalPosition += 9;
@@ -658,7 +668,7 @@ async function toPrintRoll(doc: any, transaction: Transaction, movementsOfCashs:
         movementsOfArticle.description.length > 35
           ? movementsOfArticle.description.slice(35, 105)
           : '';
-        doc.text(`$ ${formatNumberWithCommas(movementsOfArticle.salePrice)}`, 64, verticalPosition);
+        doc.text(`$ ${formatNumber(movementsOfArticle.salePrice)}`, 64, verticalPosition);
 
         if (movementsOfArticle.notes) {
           verticalPosition += 9;
