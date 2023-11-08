@@ -1,9 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const print_routes_1 = require("./print.routes");
+const routes_1 = require("./routes");
 class Routes {
     constructor(app) {
-        app.use('/', print_routes_1.default);
+        app.use('/', routes_1.default);
     }
 }
 exports.default = Routes;

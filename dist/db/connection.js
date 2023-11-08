@@ -10,7 +10,7 @@ class MongoDBManager {
     //uri = "mongodb+srv://pos:pos@cluster0.fscmrqu.mongodb.net/?retryWrites=true&w=majority";
     async initConnection(databaseName) {
         try {
-            const mongoUri = `${process.env.MONGO_URL}/${databaseName}`;
+            const mongoUri = `mongodb://localhost:27017/${databaseName}`;
             if (!this.client) {
                 this.client = await mongodb_1.MongoClient.connect(mongoUri);
                 this.database = this.client.db(databaseName);

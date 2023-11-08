@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.calculateQRAR = void 0;
-const getBarcode_1 = require("./getBarcode");
+const getQr_1 = require("./getQr");
 async function calculateQRAR(transaction, config) {
     var _a;
     let url = 'https://www.afip.gob.ar/fe/qr/?p=';
@@ -29,8 +29,7 @@ async function calculateQRAR(transaction, config) {
     datos['codAut'] = transaction.CAE;
     let objJsonB64 = btoa(JSON.stringify(datos));
     url += objJsonB64;
-    //  const response = await getQRCode(url)
-    const response = (0, getBarcode_1.getBarcode)('qr', url);
+    const response = await (0, getQr_1.getQRCode)(url);
     return response;
 }
 exports.calculateQRAR = calculateQRAR;
