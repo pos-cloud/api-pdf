@@ -22,7 +22,7 @@ async function authMiddleware(
         token,
         process.env.TOKEN_SECRET || '',
       );
-
+//test
       const database: string = dataJWT?.database;
       const userId: string = dataJWT?.user;
 
