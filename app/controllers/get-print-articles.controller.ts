@@ -4,6 +4,7 @@ import { Response } from "express";
 import { getArticlesData } from "../services/article.services";
 import { formatNumber, transform } from "../utils/format-numbers";
 import { getmake } from "../services/make.services";
+import { ObjectId } from "mongodb";
 const { jsPDF } = require("jspdf");
 const fs = require('fs');
 
@@ -23,8 +24,13 @@ export async function getPrintArticles(
     if (!config) {
       return res.status(404).json({ message: "Config not found" });
     }
-
-    const articles = await getArticlesData(id, database)
+    const objectIdArray = id.map((ids: any) => new ObjectId(ids));
+  
+    const articles = await getArticlesData(token,
+      {
+        match:
+          { _id: { $in: objectIdArray } },
+      })
     if (!articles) {
       return res.status(404).json({ message: "Articles not found" });
     }

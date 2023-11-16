@@ -15,38 +15,39 @@ import MovementOfCash from "../models/movement-of-cash";
 import { getCompanyPictureFromGoogle } from "../services/get-picture.services";
 import MovementOfArticle from "../models/movements-of-articles";
 import Printer from "models/printer";
+import { getBarcode } from "../utils/getBarcode";
 const fs = require('fs');
 const { jsPDF } = require("jspdf");
 
 async function header(doc: any, transaction: Transaction, config: Config, movementsOfArticles: MovementOfArticle[], printer: Printer, companyImg: string) {
   if (printer.pageWidth < 150) {
-    if(companyImg !== null){
+    if (companyImg !== null) {
       doc.addImage(companyImg, 'png', 12, 6, 62, 36)
-    }else{
-    doc.setFontSize(15)
-    doc.setFont("helvetica", "bold");
-    config.companyFantasyName.length > 0
-      ? doc.text(config.companyFantasyName.slice(0, 19), 20, 8)
-      : ''
-    config.companyFantasyName.length > 19
-      ? doc.text(config.companyFantasyName.slice(19, 40), 20, 13)
-      : '';
-    config.companyFantasyName.length > 40
-      ? config.companyFantasyName.slice(32, 105)
-      : '';
+    } else {
+      doc.setFontSize(15)
+      doc.setFont("helvetica", "bold");
+      config.companyFantasyName.length > 0
+        ? doc.text(config.companyFantasyName.slice(0, 19), 20, 8)
+        : ''
+      config.companyFantasyName.length > 19
+        ? doc.text(config.companyFantasyName.slice(19, 40), 20, 13)
+        : '';
+      config.companyFantasyName.length > 40
+        ? config.companyFantasyName.slice(32, 105)
+        : '';
 
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(15);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(15);
 
-    doc.line(0, 15, 100, 15, "FD"); // Línea Vertical
+      doc.line(0, 15, 100, 15, "FD"); // Línea Vertical
 
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(9);
-    doc.text(`Razón Social:  ${config.companyName}`, 5, 25);
-    doc.text(`Domicilio Comercial:   ${config.companyAddress}`, 5, 30);
-    doc.text(`Cliente:   ${config.companyVatCondition?.description || ""}`, 5, 35);
-    doc.text(`C.U.I.T: ${config.companyIdentificationValue}`, 5, 40);
-    doc.setFont("helvetica", "normal");
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9);
+      doc.text(`Razón Social:  ${config.companyName}`, 5, 25);
+      doc.text(`Domicilio Comercial:   ${config.companyAddress}`, 5, 30);
+      doc.text(`Cliente:   ${config.companyVatCondition?.description || ""}`, 5, 35);
+      doc.text(`C.U.I.T: ${config.companyIdentificationValue}`, 5, 40);
+      doc.setFont("helvetica", "normal");
     }
 
     if (transaction.type.electronics && movementsOfArticles.length) {
@@ -70,7 +71,7 @@ async function header(doc: any, transaction: Transaction, config: Config, moveme
 
       doc.setFontSize(12);
       doc.text(`${transaction.type.labelPrint ? transaction.type.labelPrint : transaction.type.name}`, 45, 50)
-    
+
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(8);
       if (config.country === 'AR') {
@@ -216,17 +217,17 @@ async function header(doc: any, transaction: Transaction, config: Config, moveme
       doc.text('Precio U.', 129, 72);
       doc.text('desc %.', 153, 72);
       // Columnas
-      if(transaction.type.electronics){
-      doc.line(171, 68, 171, 74, "FD"); // Línea Vertical
-      doc.line(182, 68, 182, 74, "FD"); // Línea Vertical
+      if (transaction.type.electronics) {
+        doc.line(171, 68, 171, 74, "FD"); // Línea Vertical
+        doc.line(182, 68, 182, 74, "FD"); // Línea Vertical
 
-      doc.text('IVA', 173, 72);
-      doc.text('Precio total', 184, 72);
-      }else{
-      doc.line(151, 68, 151, 74, "FD"); // Línea Vertical
-      doc.line(176, 68, 176, 74, "FD"); // Línea Vertical
+        doc.text('IVA', 173, 72);
+        doc.text('Precio total', 184, 72);
+      } else {
+        doc.line(151, 68, 151, 74, "FD"); // Línea Vertical
+        doc.line(176, 68, 176, 74, "FD"); // Línea Vertical
 
-      doc.text('Precio total', 178, 72);
+        doc.text('Precio total', 178, 72);
       }
     } else {
       doc.setFontSize(9);
@@ -409,7 +410,7 @@ async function footer(doc: any, transaction: Transaction, qrDate: string, moveme
       doc.setFont("helvetica", "bold");
       doc.text('Subtotal:', 138, 235);
       doc.text('Descuento:', 138, 241);
-       
+
       if (transaction) {
         let texBase = 0;
         let percentage = 0;
@@ -418,7 +419,7 @@ async function footer(doc: any, transaction: Transaction, qrDate: string, moveme
         for (let i = 0; i < transaction.taxes.length; i++) {
           texBase += transaction.taxes[i].taxBase;
           percentage += 1 + transaction.taxes[i].percentage / 100;
-          if(transaction.type.electronics){
+          if (transaction.type.electronics) {
             doc.setFont("helvetica", "normal");
             doc.text(`$${transaction.taxes[i].taxAmount ? formatNumber(transaction.taxes[i].taxAmount) : ''}`, 179, verticalPosition);
             doc.setFont("helvetica", "bold");
@@ -428,7 +429,7 @@ async function footer(doc: any, transaction: Transaction, qrDate: string, moveme
         }
         verticalPosition += 0, 5;
 
-        if(transaction.type.electronics){
+        if (transaction.type.electronics) {
           doc.setFont("helvetica", "bold");
           doc.text('Neto Gravado:', 138, 247);
           doc.text('Total:', 138, verticalPosition);
@@ -437,7 +438,7 @@ async function footer(doc: any, transaction: Transaction, qrDate: string, moveme
           doc.text(`${transaction.totalPrice ? formatNumber(transaction.totalPrice) : ''} `, 179, 235);
           doc.text(`$${texBase ? formatNumber(texBase) : ''}`, 179, 247);
           doc.text(`${transaction.discountAmount / percentage > 0 ? `$${transform(transaction.discountAmount / percentage, 2)}` : ''}`, 179, 241);
-        }else{
+        } else {
           doc.text('Total:', 138, 246);
           doc.text(`${transaction.totalPrice ? formatNumber(transaction.totalPrice) : ''} `, 179, 235);
           doc.text(`$${transaction.totalPrice ? formatNumber(transaction.totalPrice) : ''} `, 179, 246);
@@ -493,7 +494,7 @@ async function toPrintInvoice(doc: any, transaction: Transaction, movementsOfCas
   let currentPage = 1;
   let row = 75
 
-var x = doc.internal.pageSize.width - 20
+  var x = doc.internal.pageSize.width - 20
   if (movementsOfArticles.length > 0 && movementsOfCashs || movementsOfArticles.length > 0 && !movementsOfCashs) {
     for (let i = 0; i < movementsOfArticles.length; i++) {
       doc.setFontSize(9)
@@ -525,8 +526,8 @@ var x = doc.internal.pageSize.width - 20
         ? movementsOfArticle.description.slice(55, 105)
         : '';
       doc.text(`$ ${formatNumber(movementsOfArticle.unitPrice)}`, 134, verticalPosition);
-      if(transaction.type.electronics){
-  doc.text(movementsOfArticle.taxes[0]?.percentage !== undefined ? `${movementsOfArticle.taxes[0]?.percentage}%` : "", 173, verticalPosition);
+      if (transaction.type.electronics) {
+        doc.text(movementsOfArticle.taxes[0]?.percentage !== undefined ? `${movementsOfArticle.taxes[0]?.percentage}%` : "", 173, verticalPosition);
       }
       doc.text(`${movementsOfArticle.discountRate}%`, 153, verticalPosition)
       doc.text(`$ ${formatNumber(movementsOfArticle.salePrice)}`, 190, verticalPosition);
@@ -745,39 +746,99 @@ export async function getPrintTransaction(
       return res.status(404).json({ message: "Transaction not found" });
     }
 
-    const printer = await getPrinters(token, "Mostrador");
-    if (!printer) {
-      return res.status(404).json({ message: "Printer not found" });
-    }
-
     const qrDate = await calculateQRAR(transaction, config)
 
     const movementsOfArticles = await getMovementsOfArticle(transactionId, token)
 
     const movementsOfCashs = await getMovementsOfCash(token, transactionId)
 
-    const pageWidth = printer.pageWidth;
-    const pageHigh = printer.pageHigh;
-    const units = "mm";
-    const orientation = printer.orientation;
-    const doc = new jsPDF(orientation, units, [pageWidth, pageHigh]);
+    let doc;
 
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
+    if (transaction.type.defectPrinter) {
+      const printer = transaction.type.defectPrinter
+      const pageWidth = printer.pageWidth;
+      const pageHigh = printer.pageHigh;
+      const units = "mm";
+      const orientation = printer.orientation;
+      doc = new jsPDF(orientation, units, [pageWidth, pageHigh]);
 
-    let companyImg = null
-    await getCompanyPictureFromGoogle(config.companyPicture)
-      .then((imgData) => {
-        companyImg = imgData
-      })
-      .catch(error => {
-        console.error('Error al obtener la imagen:', error);
-      })
+      for (const field of printer.fields) {
+        switch (field.type) {
+          case 'label':
+            if (field.font !== 'default') {
+              doc.setFont(field.font, field.fontType);
+            }
+            doc.setFontSize(field.fontSize);
+            doc.text(field.positionStartX, field.positionStartY, field.value);
+            break;
+          case 'line':
+            doc.setLineWidth(field.fontSize);
+            doc.line(field.positionStartX, field.positionStartY, field.positionEndX, field.positionEndY);
+            break;
+          case 'image':
+            try {
+              const img = await getCompanyPictureFromGoogle(eval(field.value));
+              doc.addImage(img, 'png', field.positionStartX, field.positionStartY, field.positionEndX, field.positionEndY);
+            } catch (error) {
+              console.log(error);
+            }
+            break;
+          case 'barcode':
+            doc.text('hello', 6, 6)
+            // try {
+            //   const response = await getBarcode('code128', eval(field.value));
+            //   doc.addImage(response, 'png', field.positionStartX, field.positionStartY, field.positionEndX, field.positionEndY);
+            // } catch (error) {
+            //   console.log(error);
+            // }
+            break;
+          case 'data':
+          case 'dataEsp':
+            if (field.font !== 'default') {
+              doc.setFont(field.font, field.fontType);
+            }
+            doc.setFontSize(field.fontSize);
+            try {
+              const text = field.positionEndX || field.positionEndY
+                ? eval(field.value).toString().slice(field.positionEndX, field.positionEndY)
+                : eval(field.value).toString();
+              doc.text(field.positionStartX, field.positionStartY, text);
+            } catch (e) {
+              doc.text(field.positionStartX, field.positionStartY, " ");
+            }
+            break;
+          default:
+            break;
+        }
+      }
+    } else {
+      let printer = await getPrinters(token, "Mostrador");
+      if (!printer) {
+        return res.status(404).json({ message: "Printer not found" });
+      }
+      const pageWidth = printer.pageWidth;
+      const pageHigh = printer.pageHigh;
+      const units = "mm";
+      const orientation = printer.orientation;
+      doc = new jsPDF(orientation, units, [pageWidth, pageHigh]);
 
-    if (printer.pageWidth > 150) {
-      toPrintInvoice(doc, transaction, movementsOfCashs, movementsOfArticles, printer, config, qrDate, companyImg)
-    } else if (printer.pageWidth < 150) {
-      toPrintRoll(doc, transaction, movementsOfCashs, movementsOfArticles, printer, config, qrDate, companyImg)
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+
+      let companyImg = null
+      await getCompanyPictureFromGoogle(config.companyPicture)
+        .then((imgData) => {
+          companyImg = imgData
+        })
+        .catch(error => {
+          console.error('Error al obtener la imagen:', error);
+        })
+
+      if (printer.pageWidth > 150) {
+        toPrintInvoice(doc, transaction, movementsOfCashs, movementsOfArticles, printer, config, qrDate, companyImg)
+      } else if (printer.pageWidth < 150) {
+        toPrintRoll(doc, transaction, movementsOfCashs, movementsOfArticles, printer, config, qrDate, companyImg)
+      }
     }
 
     doc.autoPrint();
