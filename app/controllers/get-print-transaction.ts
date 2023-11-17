@@ -748,7 +748,7 @@ export async function getPrintTransaction(
 
     const qrDate = await calculateQRAR(transaction, config)
 
-    const movementsOfArticles = await getMovementsOfArticle(transactionId, token)
+    const movementOfArticles = await getMovementsOfArticle(transactionId, token)
 
     const movementsOfCashs = await getMovementsOfCash(token, transactionId)
 
@@ -762,53 +762,69 @@ export async function getPrintTransaction(
       const orientation = printer.orientation;
       doc = new jsPDF(orientation, units, [pageWidth, pageHigh]);
 
-      for (const field of printer.fields) {
-        switch (field.type) {
-          case 'label':
-            if (field.font !== 'default') {
-              doc.setFont(field.font, field.fontType);
-            }
-            doc.setFontSize(field.fontSize);
-            doc.text(field.positionStartX, field.positionStartY, field.value);
-            break;
-          case 'line':
-            doc.setLineWidth(field.fontSize);
-            doc.line(field.positionStartX, field.positionStartY, field.positionEndX, field.positionEndY);
-            break;
-          case 'image':
-            try {
-              const img = await getCompanyPictureFromGoogle(eval(field.value));
-              doc.addImage(img, 'png', field.positionStartX, field.positionStartY, field.positionEndX, field.positionEndY);
-            } catch (error) {
-              console.log(error);
-            }
-            break;
-          case 'barcode':
-            doc.text('hello', 6, 6)
-            // try {
-            //   const response = await getBarcode('code128', eval(field.value));
-            //   doc.addImage(response, 'png', field.positionStartX, field.positionStartY, field.positionEndX, field.positionEndY);
-            // } catch (error) {
-            //   console.log(error);
-            // }
-            break;
-          case 'data':
-          case 'dataEsp':
-            if (field.font !== 'default') {
-              doc.setFont(field.font, field.fontType);
-            }
-            doc.setFontSize(field.fontSize);
-            try {
-              const text = field.positionEndX || field.positionEndY
-                ? eval(field.value).toString().slice(field.positionEndX, field.positionEndY)
-                : eval(field.value).toString();
-              doc.text(field.positionStartX, field.positionStartY, text);
-            } catch (e) {
-              doc.text(field.positionStartX, field.positionStartY, " ");
-            }
-            break;
-          default:
-            break;
+      for (const movementOfArticle of movementOfArticles) {
+        for (const field of printer.fields) {
+          switch (field.type) {
+            case 'label':
+              if (field.font !== 'default') {
+                doc.setFont(field.font, field.fontType);
+              }
+              doc.setFontSize(field.fontSize);
+              doc.text(field.positionStartX, field.positionStartY, field.value);
+              break;
+            case 'line':
+              doc.setLineWidth(field.fontSize);
+              doc.line(field.positionStartX, field.positionStartY, field.positionEndX, field.positionEndY);
+              break;
+            case 'image':
+              try {
+                const img = await getCompanyPictureFromGoogle(eval(field.value));
+                doc.addImage(img, 'png', field.positionStartX, field.positionStartY, field.positionEndX, field.positionEndY);
+              } catch (error) {
+                console.log(error);
+              }
+              break;
+            case 'barcode':
+              doc.text('hello', 6, 6)
+              // try {
+              //   const response = await getBarcode('code128', eval(field.value));
+              //   doc.addImage(response, 'png', field.positionStartX, field.positionStartY, field.positionEndX, field.positionEndY);
+              // } catch (error) {
+              //   console.log(error);
+              // }
+              break;
+            case 'data':
+              if (field.font !== 'default') {
+                doc.setFont(field.font, field.fontType);
+              }
+              doc.setFontSize(field.fontSize)
+              try {
+                if (field.positionEndX || field.positionEndY) {
+                  doc.text(field.positionStartX, field.positionStartY, eval(field.value).toString().slice(field.positionEndX, field.positionEndY))
+                } else {
+                  doc.text(field.positionStartX, field.positionStartY, eval(field.value).toString())
+                }
+              } catch (e) {
+                doc.text(field.positionStartX, field.positionStartY, " ")
+              }
+              break;
+            case 'dataEsp':
+              if (field.font !== 'default') {
+                doc.setFont(field.font, field.fontType);
+              }
+              doc.setFontSize(field.fontSize);
+              try {
+                const text = field.positionEndX || field.positionEndY
+                  ? eval(field.value).toString().slice(field.positionEndX, field.positionEndY)
+                  : eval(field.value).toString();
+                doc.text(field.positionStartX, field.positionStartY, text);
+              } catch (e) {
+                doc.text(field.positionStartX, field.positionStartY, " ");
+              }
+              break;
+            default:
+              break;
+          }
         }
       }
     } else {
@@ -835,9 +851,9 @@ export async function getPrintTransaction(
         })
 
       if (printer.pageWidth > 150) {
-        toPrintInvoice(doc, transaction, movementsOfCashs, movementsOfArticles, printer, config, qrDate, companyImg)
+        toPrintInvoice(doc, transaction, movementsOfCashs, movementOfArticles, printer, config, qrDate, companyImg)
       } else if (printer.pageWidth < 150) {
-        toPrintRoll(doc, transaction, movementsOfCashs, movementsOfArticles, printer, config, qrDate, companyImg)
+        toPrintRoll(doc, transaction, movementsOfCashs, movementOfArticles, printer, config, qrDate, companyImg)
       }
     }
 

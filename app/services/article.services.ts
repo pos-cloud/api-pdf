@@ -52,7 +52,6 @@ export async function getArticlesData( token: string, articlesIds: string[]): Pr
     }
     const data = await axios.get(URL, { headers, params });
     const responses: Article[] = data.data.result
-    console.log(data.data)
     return responses;
   } catch (error) {
     console.log(error)

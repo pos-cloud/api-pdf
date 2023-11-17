@@ -1,3 +1,4 @@
+import Article from "./article"
 import Model from "./model"
 
 export default interface MovementOfArticle extends Model {
@@ -42,7 +43,7 @@ export default interface MovementOfArticle extends Model {
   printIn: string
   status: string
   printed: number
-//   article: Article
+  article: Article
 //   transaction: Transaction
 //   businessRule?: BusinessRule
   transactionEndDate?: string

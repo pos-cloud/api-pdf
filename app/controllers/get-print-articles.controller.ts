@@ -25,7 +25,7 @@ export async function getPrintArticles(
       return res.status(404).json({ message: "Config not found" });
     }
     const objectIdArray = id.map((ids: any) => new ObjectId(ids));
-  
+   
     const articles = await getArticlesData(token,
       {
         match:
