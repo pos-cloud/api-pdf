@@ -4,7 +4,6 @@ import { Response } from "express";
 import { getArticlesData } from "../services/article.services";
 import { formatNumber, transform } from "../utils/format-numbers";
 import { getmake } from "../services/make.services";
-import { ObjectId } from "mongodb";
 const { jsPDF } = require("jspdf");
 const fs = require('fs');
 
@@ -14,26 +13,22 @@ export async function getPrintArticles(
   const token = req.headers.authorization
   const database = req.database
   try {
-    const id = req.body
-    if (!id) {
+    const articleIds = req.body
+    if (!articleIds) {
       return res.status(404).json({ message: "id not found" });
     }
-
+    
     const configs = await getConfig(token);
     const config = configs[0]
     if (!config) {
       return res.status(404).json({ message: "Config not found" });
     }
-    const objectIdArray = id.map((ids: any) => new ObjectId(ids));
    
-    const articles = await getArticlesData(token,
-      {
-        match:
-          { _id: { $in: objectIdArray } },
-      })
-    if (!articles) {
+    const articles = await getArticlesData(token, articleIds)
+    if (!articles || articles.length == 0) {
       return res.status(404).json({ message: "Articles not found" });
     }
+
     const pageWidth = 210;
     const pageHigh = 297;
     const units = 'mm';

@@ -1,5 +1,6 @@
 import axios from "axios";
 import Article from "../models/article";
+import { ObjectId } from "mongodb";
 
 export async function getArticleData(articleId: string, token: string): Promise<Article> {
   try {
