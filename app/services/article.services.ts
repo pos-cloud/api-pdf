@@ -58,16 +58,3 @@ export async function getArticlesData( token: string, articlesIds: string[]): Pr
     console.log(error)
   }
 }
-
-// export async function getArticlesData(ids: string[], database: string): Promise<Article[]> {
-//   try {
-//     await mongoDBManager.initConnection(database);
-//     const objectIdArray = ids.map(id => new ObjectId(id));
-//     const articlesCollection = mongoDBManager.getCollection('articles'); 
-//     const articles = await articlesCollection.find({ _id: { $in: objectIdArray } }).toArray()
-
-//     return articles;
-//   } catch (error) {
-//     console.log(error)
-//   }
-// }
