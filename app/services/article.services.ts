@@ -1,9 +1,6 @@
 import axios from "axios";
 import Article from "../models/article";
 import { ObjectId } from "mongodb";
-import MongoDBManager from "../db/connection";
-
-const mongoDBManager = new MongoDBManager();
 
 export async function getArticleData(articleId: string, token: string): Promise<Article> {
   try {
@@ -24,17 +21,40 @@ export async function getArticleData(articleId: string, token: string): Promise<
   }
 }
 
-export async function getArticlesData(ids: string[], database: string): Promise<Article[]> {
+export async function getArticlesData( token: string, articlesIds: string[]): Promise<Article[]> {
   try {
-    await mongoDBManager.ensureConnection(database);
 
-    const objectIdArray = ids.map(id => new ObjectId(id));
-    const articlesCollection = mongoDBManager.getCollection('articles'); 
-    const articles = await articlesCollection.find({ _id: { $in: objectIdArray } }).toArray();
+    let articlesArray: { $oid: string }[] = [];
+    articlesIds.forEach((articleId: string) => {
+      articlesArray.push({$oid: articleId});
+    });
 
-    return articles;
+    let project = {}
+    let sort = {}
+    let group = {}
+    let limit = 0
+    let skip = 0
+    let match = {
+      _id : { $in : articlesArray }
+    }
+
+    const URL = `${process.env.APIV2}articles`;
+    const headers = {
+      'Authorization': token,
+    };
+
+    const params = {
+      match: JSON.stringify(match),
+      project: JSON.stringify(project),
+      sort: JSON.stringify(sort),
+      group: JSON.stringify(group),
+      limit: limit.toString(),
+      skip: skip.toString()
+    }
+    const data = await axios.get(URL, { headers, params });
+    const responses: Article[] = data.data.result
+    return responses;
   } catch (error) {
-    console.error('Error en getArticlesData:', error);
-    throw error;
+    console.log(error)
   }
 }

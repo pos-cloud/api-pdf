@@ -2,7 +2,7 @@ import { getConfig } from "../services/config.services";
 import RequestWithUser from "../interfaces/requestWithUser.interface";
 import { Response } from "express";
 import { getArticlesData } from "../services/article.services";
-import { transform } from "../utils/format-numbers";
+import { formatNumber, transform } from "../utils/format-numbers";
 import { getmake } from "../services/make.services";
 const { jsPDF } = require("jspdf");
 const fs = require('fs');
@@ -13,21 +13,22 @@ export async function getPrintArticles(
   const token = req.headers.authorization
   const database = req.database
   try {
-    const id = req.body
-    if (!id) {
+    const articleIds = req.body
+    if (!articleIds) {
       return res.status(404).json({ message: "id not found" });
     }
-
+    
     const configs = await getConfig(token);
     const config = configs[0]
     if (!config) {
       return res.status(404).json({ message: "Config not found" });
     }
-
-    const articles = await getArticlesData(id, database)
-    if (!articles) {
+   
+    const articles = await getArticlesData(token, articleIds)
+    if (!articles || articles.length == 0) {
       return res.status(404).json({ message: "Articles not found" });
     }
+
     const pageWidth = 210;
     const pageHigh = 297;
     const units = 'mm';
@@ -47,10 +48,11 @@ export async function getPrintArticles(
       + currentdate.getMinutes()
 
     for (let articleItem of articles) {
+      let salePriceTransform = transform(articleItem.salePrice)
       doc.rect(x, y, 60, 30.5);
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(30);
-      doc.text(x + 5, y + 12, `$${transform(articleItem.salePrice)}`);
+      doc.text(x + 5, y + 12, `$${formatNumber(salePriceTransform)}`);
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(9);
       doc.setFont('helvetica', 'italic');

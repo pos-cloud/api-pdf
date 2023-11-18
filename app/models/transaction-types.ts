@@ -1,4 +1,5 @@
 import Model from "./model"
+import Printer from "./printer"
 
 export interface TransactionType extends Model {
   order: number
@@ -27,6 +28,7 @@ export interface TransactionType extends Model {
   codes: [{letter: string; code: number}]
   fiscalCode: string
   fixedOrigin: number
+  defectPrinter: Printer
   fixedLetter: string
   maxOrderNumber: number
   tax: boolean
