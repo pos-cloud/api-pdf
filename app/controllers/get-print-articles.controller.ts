@@ -3,7 +3,6 @@ import RequestWithUser from "../interfaces/requestWithUser.interface";
 import { Response } from "express";
 import { getArticlesData } from "../services/article.services";
 import { formatNumber, transform } from "../utils/format-numbers";
-import { getmake } from "../services/make.services";
 const { jsPDF } = require("jspdf");
 const fs = require('fs');
 
@@ -57,10 +56,10 @@ export async function getPrintArticles(
       doc.setFontSize(9);
       doc.setFont('helvetica', 'italic');
       articleItem.description.length > 0
-        ? doc.text(articleItem.description.slice(0, 30) + '-', x + 1, y + 20)
+        ? doc.text(articleItem.description.slice(0, 28) + '-', x + 1, y + 20)
         : ''
-      articleItem.description.length > 30
-        ? doc.text(articleItem.description.slice(30, 58) + '-', x + 1, (y + 23))
+      articleItem.description.length > 28
+        ? doc.text(articleItem.description.slice(28, 58) + '-', x + 1, (y + 23))
         : '';
       articleItem.description.length > 58
         ? articleItem.description.slice(58, 105)
@@ -73,11 +72,8 @@ export async function getPrintArticles(
       doc.text(x + 40, y + 29, datetime);
       doc.setFontSize(9);
       doc.setFont('helvetica', 'italic');
-      const make = await getmake(articleItem.make, database)
 
-      if (make) {
-        doc.text(x + 1, y + 26, make.description || '');
-      }
+      doc.text(x + 1, y + 26, articleItem?.make?.description || '');
       //validate position
       if (x >= 110) {
         x = 15

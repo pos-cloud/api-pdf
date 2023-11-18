@@ -29,7 +29,11 @@ export async function getArticlesData( token: string, articlesIds: string[]): Pr
       articlesArray.push({$oid: articleId});
     });
 
-    let project = {}
+    let project = {
+      salePrice: 1,
+      description: 1,
+      'make.description': 1
+    }
     let sort = {}
     let group = {}
     let limit = 0
